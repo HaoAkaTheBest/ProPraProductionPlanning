@@ -1,0 +1,133 @@
+﻿@page "/uploadfiles"
+<h3>Upload Files</h3>
+<div>
+    <div style="margin: 10px;">
+        <EditForm Model="uploadFiles" OnValidSubmit="SubmitForm">
+            <div>
+                <div>
+                    <label>
+                        Orders.csv:
+                        <InputFile class="form-control" OnChange="LoadOrdersFile" accept=".csv" />
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        Machines.csv:
+                        <InputFile class="form-control" OnChange="LoadMachinesFile" accept=".csv" />
+                    </label>
+
+                </div>
+                <div>
+                    <label>
+                        Routings.csv:
+                        <InputFile class="form-control" OnChange="LoadRoutingsFile" accept=".csv" />
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        MachineAvailability.csv:
+                        <InputFile class="form-control" OnChange="LoadMachineAvailabilityFile" accept=".csv" />
+                    </label>
+                </div>
+                <div>
+                    <button class="btn btn-primary mt-3" type="submit">Upload Files</button>
+                    <button class="btn btn-primary mt-3" type="button" @onclick="(()=>ResetForm())">Clear Files</button>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+ 
+    <div class="btn-group" style="margin: 10px;">
+        <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowOrders())">
+            Show Uploaded Orders
+        </button>
+        <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowMachines())">
+            Show Uploaded Machines
+        </button>
+    </div>
+</div>
+
+@if (errors.Count > 0)
+{
+    <h2>Errors</h2>
+    <ul class="text-danger">
+        @foreach (var error in errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+@if (uploading)
+{
+    <h3 class="text-warning">Uploading Files</h3>
+}
+@if (uploadSuccess)
+{
+    <h3 class="text-success">Upload Successfully</h3>
+}
+@if (showOrdersFile)
+{
+    <TestChart data="@orders"></TestChart>
+   @*  <div class="row">
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Product Id</th>
+                        <th>Deadline</th>
+                        <th>Earliest Start Date</th>
+                        <th>Order Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in orders)
+                    {
+                        <tr>
+                            <td>@o.Id</td>
+                            <td>@o.ProductId</td>
+                            <td>@o.Deadline</td>
+                            <td>@o.EarliestStartDate</td>
+                            <td>@o.OrderDate</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div> *@
+}
+@if (showMachinesFile)
+{
+    <div class="row">
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Short Name</th>
+                        <th>Description</th>
+                        <th>Effectivity</th>
+                        <th>Machine Alternativity Group</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in machines)
+                    {
+                        <tr>
+                            <td>@m.Id</td>
+                            <td>@m.ShortName</td>
+                            <td>@m.Description</td>
+                            <td>@m.Effectivity</td>
+                            <td>@m.MachineAlternativityGroup</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+
+
+
+

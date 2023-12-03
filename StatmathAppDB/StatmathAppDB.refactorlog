@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="dd5cb420-9b19-41b5-9034-8b420264868f" ChangeDateTime="12/01/2023 21:27:53">
+    <Property Name="ElementName" Value="[dbo].[Orders].[Er]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Orders]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Earliest" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="f6796b33-8864-4338-b999-0455746605df" ChangeDateTime="12/01/2023 21:28:18">
+    <Property Name="ElementName" Value="[dbo].[Orders].[Earliest]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Orders]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="EarliestStartDate" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="e5ad33ab-7250-40bc-9571-ff33d3a562c5" ChangeDateTime="12/03/2023 11:19:09">
+    <Property Name="ElementName" Value="[dbo].[Routings].[ProductionId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Routings]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ProductId" />
+  </Operation>
+</Operations>
