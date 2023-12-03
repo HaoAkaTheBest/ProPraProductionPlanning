@@ -9,8 +9,6 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "StatmathAppDB", "StatmathAp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SupportLibrary", "SupportLibrary\SupportLibrary.csproj", "{33229878-E6EC-4203-8483-0675A98323AB}"
 EndProject
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "SampleDB", "SampleDB\SampleDB.sqlproj", "{FD709C63-2FAA-4982-90BD-270FC19122A1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,12 +29,6 @@ Global
 		{33229878-E6EC-4203-8483-0675A98323AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33229878-E6EC-4203-8483-0675A98323AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33229878-E6EC-4203-8483-0675A98323AB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD709C63-2FAA-4982-90BD-270FC19122A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD709C63-2FAA-4982-90BD-270FC19122A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD709C63-2FAA-4982-90BD-270FC19122A1}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{FD709C63-2FAA-4982-90BD-270FC19122A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD709C63-2FAA-4982-90BD-270FC19122A1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD709C63-2FAA-4982-90BD-270FC19122A1}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
