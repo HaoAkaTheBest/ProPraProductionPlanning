@@ -6,7 +6,7 @@ namespace SupportLibrary.Data
         Task CreateMachine(IMachineModel machine);
         Task DeleteMachine(int id);
         Task<List<IMachineModel>> ReadMachine();
-        Task<IMachineModel> ReadMachine(int id);
+        Task<IMachineModel> ReadMachine(int machineid);
         Task<List<IMachineModel>> SearchMachine(string searchTerm);
         Task UpdateMachine(IMachineModel machine);
     }

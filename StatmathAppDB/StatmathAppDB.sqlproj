@@ -69,6 +69,13 @@
     <Build Include="dbo\Stored Procedures\spOrders_Create.sql" />
     <Build Include="dbo\Stored Procedures\spRoutings_Create.sql" />
     <Build Include="dbo\Stored Procedures\spMachineAvailabilities_Create.sql" />
+    <Build Include="dbo\Stored Procedures\spMachines_Read.sql" />
+    <Build Include="dbo\Stored Procedures\spMachineAvailabilities_Read.sql" />
+    <Build Include="dbo\Stored Procedures\spOrders_Read.sql" />
+    <Build Include="dbo\Stored Procedures\spRoutings_Read.sql" />
+    <Build Include="dbo\Stored Procedures\spRoutings_ReadForOneProduct.sql" />
+    <Build Include="dbo\Stored Procedures\spMachines_ReadOneMachine.sql" />
+    <Build Include="dbo\Stored Procedures\spMachineAvailabilities_ReadAvailabilityForProduction.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="StatmathAppDB.refactorlog" />

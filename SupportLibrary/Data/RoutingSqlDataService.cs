@@ -24,7 +24,14 @@ namespace SupportLibrary.Data
                 routing.SetupTimeInSeconds,
                 routing.ProcessTimeInSeconds
             };
-            await _dataAccess.SaveData("dbo.spRoutings_Create", p, "SQLDB");
+            try
+            {
+                await _dataAccess.SaveData("dbo.spRoutings_Create", p, "SQLDB");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<List<IRoutingModel>> ReadRouting()
@@ -36,13 +43,13 @@ namespace SupportLibrary.Data
             return routing.ToList<IRoutingModel>();
         }
 
-        public async Task<IRoutingModel> ReadRouting(int id)
+        public async Task<List<IRoutingModel>> ReadRoutingForOneProduct(int productId)
         {
-            var routing = await _dataAccess.LoadData<RoutingModel, dynamic>("dbo.spRoutings_ReadOne",
-                                                                          new { Id = id },
+            var routing = await _dataAccess.LoadData<RoutingModel, dynamic>("dbo.spRoutings_ReadForOneProduct",
+                                                                          new { ProductId = productId },
                                                                           "SQLDB");
 
-            return routing.FirstOrDefault();
+            return routing.ToList<IRoutingModel>();
         }
 
         public async Task UpdateRouting(IRoutingModel routing)

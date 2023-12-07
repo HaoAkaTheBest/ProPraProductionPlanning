@@ -1,5 +1,7 @@
 ﻿global using SupportLibrary.DataAccess;
 global using SupportLibrary.Models;
+global using SupportLibrary.Data;
+global using SupportLibrary.SupportModels;
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;

@@ -31,6 +31,13 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
         List<OrderModel> orders = new();
         List<MachineModel> machines = new();
+        List<RoutingModel> routings = new();
+        List<MachineAvailabilityModel> machineAvailabilites = new();
+
+        List<MachineModel> duplicatedMachines = new();
+        List<OrderModel> duplicatedOrders = new();
+        List<RoutingModel> duplicatedRoutings = new();
+        List<MachineAvailabilityModel> duplicatedMA = new();
 
         private bool showMachinesFile;
         private bool showRoutingsFile;
@@ -41,15 +48,23 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
         private bool uploading;
         private bool uploadSuccess;
+        private bool uploadFail;
+
+        private bool duplicatedEntries;
+        private bool isDupMachines;
+        private bool isDupOrders;
+        private bool isDupRoutings;
+        private bool isDupMA;
 
         private List<string> errors = new();
         private UploadFilesModel uploadFiles = new();
 
         private async Task ShowOrders()
         {
+            errors.Clear();
             if (ordersFile == null)
             {
-                errors.Add("There are no uploaded orders!!");
+                errors.Add("There are no uploaded Orders!!");
                 return;
             }
             uploadSuccess = false;
@@ -70,9 +85,10 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
         private async Task ShowMachines()
         {
-            if (machinesFile ==null)
+            errors.Clear();
+            if (machinesFile == null)
             {
-                errors.Add("There are no uploaded machines!!");
+                errors.Add("There are no uploaded Machines!!");
                 return;
             }
             uploadSuccess = false;
@@ -88,10 +104,55 @@ namespace ProductionPlanningUI.Pages.UploadComponents
             {
                 showMachineAvailabilityFile = false;
             }
-            machines = await ReadCSV.ReadMachinesFile(machinesFile);
             showMachinesFile = true;
         }
 
+        private async Task ShowRoutings()
+        {
+            errors.Clear();
+            if (routingsFile == null)
+            {
+                errors.Add("There are no uploaded Routings!!");
+                return;
+            }
+            uploadSuccess = false;
+            if (showOrdersFile)
+            {
+                showOrdersFile = false;
+            }
+            if (showMachinesFile)
+            {
+                showMachinesFile = false;
+            }
+            if (showMachineAvailabilityFile)
+            {
+                showMachineAvailabilityFile = false;
+            }
+            showRoutingsFile = true;
+        }
+        private async Task ShowMA()
+        {
+            errors.Clear();
+            if (machineAvailabilityFile == null)
+            {
+                errors.Add("There are no uploaded Machine Availability!!");
+                return;
+            }
+            uploadSuccess = false;
+            if (showOrdersFile)
+            {
+                showOrdersFile = false;
+            }
+            if (showRoutingsFile)
+            {
+                showRoutingsFile = false;
+            }
+            if (showMachinesFile)
+            {
+                showMachinesFile = false;
+            }
+            showMachineAvailabilityFile = true;
+        }
 
         private async Task LoadOrdersFile(InputFileChangeEventArgs e)
         {
@@ -112,24 +173,33 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
         private async Task SubmitForm()
         {
+            uploadSuccess = false;
             try
             {
                 uploading = true;
                 await CaptureFile();
                 uploadSuccess = true;
                 uploading = false;
-                errors.Clear();
             }
             catch (Exception ex)
             {
                 errors.Add($"Error: {ex.Message}");
+                uploadFail = true;
                 throw;
+            }
+            finally
+            {
+                
+                uploading = false;
             }
         }
 
         private async Task ResetForm()
         {
+            uploading = false;
+            uploadFail = false;
             uploadSuccess = false;
+
             uploadFiles = new();
             routingsFile = null;
             ordersFile = null;
@@ -141,9 +211,21 @@ namespace ProductionPlanningUI.Pages.UploadComponents
             showOrdersFile = false;
             showMachineAvailabilityFile = false;
 
+            duplicatedEntries = false;
+            isDupMA = false;
+            isDupMachines = false;
+            isDupOrders = false;
+            isDupRoutings = false;
+
+            routings.Clear();
+            machineAvailabilites.Clear();
             errors.Clear();
             orders.Clear();
             machines.Clear();
+            duplicatedMachines.Clear();
+            duplicatedOrders.Clear();
+            duplicatedMA.Clear();
+            duplicatedRoutings.Clear();
         }
 
         private async Task CaptureFile()
@@ -166,10 +248,32 @@ namespace ProductionPlanningUI.Pages.UploadComponents
                     await using FileStream fs = new(path, FileMode.Create);
                     await machinesFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
 
-                    var tempMachines = await ReadCSV.ReadMachinesFile(machinesFile);
-                    foreach (var m in tempMachines)
+                    machines = await ReadCSV.ReadMachinesFile(machinesFile);
+                    int numberOfDuplicateEntries = 0;
+                    foreach (var m in machines)
                     {
-                        machineDataAccess.CreateMachine(m);
+                        try
+                        {
+                            await machineDataAccess.CreateMachine(m);
+                        }
+                        catch (Exception ex)
+                        {
+                            numberOfDuplicateEntries += 1;
+                            duplicatedMachines.Add(m);
+                        }
+
+                    }
+                    if (numberOfDuplicateEntries == machines.Count())
+                    {
+                        duplicatedMachines.Clear();
+                        throw new Exception("All the values are duplicated");
+
+                    }
+                    else if (numberOfDuplicateEntries >= 1 && numberOfDuplicateEntries < machines.Count())
+                    {
+                        duplicatedEntries = true;
+                        isDupMachines = true;
+                        throw new Exception($"Duplicated entries");
                     }
                 }
                 catch (Exception ex)
@@ -198,9 +302,29 @@ namespace ProductionPlanningUI.Pages.UploadComponents
                     await ordersFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
 
                     orders = await ReadCSV.ReadOrdersFile(ordersFile);
+                    int numberOfDuplicateEntries = 0;
                     foreach (var o in orders)
                     {
-                        orderDataAccess.CreateOrder(o);
+                        try
+                        {
+                            await orderDataAccess.CreateOrder(o);
+                        }
+                        catch (Exception ex)
+                        {
+                            numberOfDuplicateEntries += 1;
+                            duplicatedOrders.Add(o);
+                        }
+                    }
+                    if (numberOfDuplicateEntries == orders.Count())
+                    {
+                        duplicatedOrders.Clear();
+                        throw new Exception("All the values are duplicated");
+                    }
+                    else if (numberOfDuplicateEntries >= 1 && numberOfDuplicateEntries < orders.Count())
+                    {
+                        duplicatedEntries = true;
+                        isDupOrders = true;
+                        throw new Exception($"Duplicated entries");
                     }
 
                 }
@@ -231,10 +355,31 @@ namespace ProductionPlanningUI.Pages.UploadComponents
                     await using FileStream fs = new(path, FileMode.Create);
                     await routingsFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
 
-                    var routings = await ReadCSV.ReadRoutingsFile(routingsFile);
+                    routings = await ReadCSV.ReadRoutingsFile(routingsFile);
+                    int numberOfDuplicateEntries = 0;
                     foreach (var r in routings)
                     {
-                        routingDataAccess.CreateRouting(r);
+                        try
+                        {
+                            await routingDataAccess.CreateRouting(r);
+                        }
+                        catch (Exception ex)
+                        {
+                            numberOfDuplicateEntries += 1;
+                            duplicatedRoutings.Add(r);
+                        }
+                    }
+                    if (numberOfDuplicateEntries == routings.Count())
+                    {
+                        duplicatedRoutings.Clear();
+                        throw new Exception("All the values are duplicated");
+
+                    }
+                    else if (numberOfDuplicateEntries >= 1 && numberOfDuplicateEntries < routings.Count())
+                    {
+                        duplicatedEntries = true;
+                        isDupRoutings = true;
+                        throw new Exception($"Duplicated entries");
                     }
 
                 }
@@ -265,10 +410,30 @@ namespace ProductionPlanningUI.Pages.UploadComponents
                     await using FileStream fs = new(path, FileMode.Create);
                     await machineAvailabilityFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
 
-                    var mas = await ReadCSV.ReadMachineAvailabilityFile(machineAvailabilityFile);
-                    foreach (var availability in mas)
+                    machineAvailabilites = await ReadCSV.ReadMachineAvailabilityFile(machineAvailabilityFile);
+                    int numberOfDuplicateEntries = 0;
+                    foreach (var availability in machineAvailabilites)
                     {
-                        machineAvailabilityDataAccess.CreateMachineAvailability(availability);
+                        try
+                        {
+                            await machineAvailabilityDataAccess.CreateMachineAvailability(availability);
+                        }
+                        catch (Exception ex)
+                        {
+                            numberOfDuplicateEntries += 1;
+                            duplicatedMA.Add(availability);
+                        }
+                    }
+                    if (numberOfDuplicateEntries == machineAvailabilites.Count())
+                    {
+                        duplicatedMA.Clear();
+                        throw new Exception("All the values are duplicated");
+                    }
+                    else if (numberOfDuplicateEntries >= 1 && numberOfDuplicateEntries < machineAvailabilites.Count())
+                    {
+                        duplicatedEntries = true;
+                        isDupMA = true;
+                        throw new Exception($"Duplicated entries");
                     }
 
                 }
@@ -277,6 +442,7 @@ namespace ProductionPlanningUI.Pages.UploadComponents
                     errors.Add($"File: {machineAvailabilityFile.Name} Error: {ex.Message}");
                     Logger.LogError("File: {Filename} Error: {Error}",
                         machineAvailabilityFile.Name, ex.Message);
+
                 }
             }
         }

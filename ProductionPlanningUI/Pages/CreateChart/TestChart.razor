@@ -1,109 +1,95 @@
-﻿<h3>Test Chart</h3>
+﻿@page "/testchart"
+@inject IProductionPlanning planning
+<h3>Test Chart</h3>
+<h2>Click the button to test</h2>
 
 
-<SfGantt DataSource="@TaskCollection" Height="450px" Width="1200px">
-    <GanttTaskFields Id="Id" Name="ProductId" StartDate="EarliestStartDate" EndDate="Deadline"
-                      Progress="Progress" ParentID="ParentId">
-    </GanttTaskFields>
-    <GanttColumns>
-        <GanttColumn Field="Id" Width="150"></GanttColumn>
-        <GanttColumn Field="ProductId" HeaderText="Product Id" Width="150"></GanttColumn>
-        <GanttColumn Field="OrderDate" HeaderText="Order Date" Width="150"></GanttColumn>
-        <GanttColumn Field="EarliestStartDate" HeaderText="Earliest Start Date" Width="150"></GanttColumn>
-        <GanttColumn Field="Deadline" HeaderText="Deadline" Width="150"></GanttColumn>
-        <GanttColumn Field="Progress" HeaderText="Progress" Width="150"></GanttColumn>
-        <GanttColumn Field="Status" HeaderText="Status" Width="150" EditType=Syncfusion.Blazor.Grids.EditType.DefaultEdit></GanttColumn>
-    </GanttColumns>
-</SfGantt>
+
+@if (TaskCollection == null)
+{
+    <h3>...is loading</h3>
+
+    <h3 class="text-danger">You have to upload the files first!!!(if you havent)</h3>
+}
+else
+{
+    <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowChart())">
+        Show Chart
+    </button>
+}
+@if (showChart)
+{
+    <GanttChart TaskCollection="ToShow"></GanttChart>
+}
 
 @code {
-    [Parameter]
-    public List<OrderModel> data { get; set; }
-
-
-    private List<OrderDisplayModel> TaskCollection { get; set; }
-
-    protected override Task OnParametersSetAsync()
+    bool showChart;
+    private List<TaskDataToShow> ToShow { get; set; } = new();
+    private List<ITaskData> TaskCollection { get; set; }
+    protected override async Task OnInitializedAsync()
     {
-        if (data !=null)
+        // ToShow = GetTaskCollection();
+        var temp = await planning.CreateProductionPlan();
+        TaskCollection = temp;
+    }
+
+    private void ShowChart()
+    {
+        foreach (var item in TaskCollection)
         {
-            List<OrderDisplayModel> temp =new();
-            foreach (var order in data)
-            {
-                TimeSpan duration = order.Deadline - order.EarliestStartDate;
+            TaskDataToShow task = new TaskDataToShow
+                {
+                    TaskId = item.TaskId,
+                    TaskName = item.ProductId,
+                    StartDate = item.EarliestStartDate,
+                    EndDate = item.EndDate,
+                    Duration = item.Duration,
+                    Progress = item.Progress,
+                    DurationUnit = item.DurationUnit,
+                    Note = item.Note,
+                    Deadline = item.Deadline,
+                    OrderDate = item.OrderDate,
+                    Status = item.Status
+                };
+            ToShow.Add(task);
 
-                TimeSpan elapsedDuration = DateTime.Now - order.EarliestStartDate;
-
-                // Calculate the progress as a percentage
-                int progress = (int)(elapsedDuration.TotalDays / duration.TotalDays * 100);
-                string status = "Not started";
-                if (progress < 100 && 0 < progress)
-                {
-                    status = "In progress";
-                }
-                else if (progress == 100)
-                {
-                    status = "Done";
-                }
-                else
-                {
-                    progress = 0;
-                }
-                temp.Add(new OrderDisplayModel
-                    {
-                        Id = order.Id,
-                        ProductId = $"{order.ProductId}",
-                        EarliestStartDate = order.EarliestStartDate,
-                        Deadline = order.Deadline,
-                        OrderDate = order.OrderDate,
-                        Progress = progress,
-                        Status = status
-                    });
-            }
-            TaskCollection = temp;
         }
-        
-        return base.OnParametersSetAsync();
+        showChart = true;
     }
 
-    public static List<OrderDisplayModel> GetTaskCollection()
-    {
-        List<OrderDisplayModel> Tasks = new List<OrderDisplayModel>()
-        {
-            new OrderDisplayModel
-    {
-        Id = 1,
-        ProductId = "P001",
-        EarliestStartDate = DateTime.Parse("2023-01-10"),
-        Deadline = DateTime.Parse("2023-01-20"),
-        OrderDate = DateTime.Parse("2023-01-05"),
-        Progress = 30,
-        Status = "In Progress",
-        ParentId = null
-    },
-    new OrderDisplayModel
-    {
-        Id = 2,
-        ProductId = "P002",
-        EarliestStartDate = DateTime.Parse("2023-02-15"),
-        Deadline = DateTime.Parse("2023-03-01"),
-        OrderDate = DateTime.Parse("2023-02-10"),
-        Progress = 75,
-        Status = "In Progress",
-        ParentId = 1
-    },
-    new OrderDisplayModel
-    {
-        Id = 3,
-        ProductId = "P003",
-        EarliestStartDate = DateTime.Parse("2023-04-01"),
-        Deadline = DateTime.Parse("2023-04-15"),
-        OrderDate = DateTime.Parse("2023-03-25"),
-        Progress = 100,
-        Status = "Completed",
-        ParentId = 2
-    }
-        };
-        return Tasks;
-    }
+
+
+
+
+    // public static List<TaskDataToShow> GetTaskCollection()
+    // {
+    //     List<TaskDataToShow> Tasks = new List<TaskDataToShow>()
+    //     {
+    //         new TaskDataToShow
+    // {
+    //     TaskId = 1,
+    //     TaskName = "P001",
+    //     StartDate = DateTime.Parse("2023-01-10"),
+    //     Progress = 30,
+    //     ParentId = null
+    // },
+    // new TaskDataToShow
+    // {
+    //     TaskId = 2,
+    //     TaskName = "P002",
+    //     StartDate = DateTime.Parse("2023-02-15"),
+    //     Progress = 75,
+    //     ParentId = 1
+    // },
+    // new TaskDataToShow
+    // {
+    //     TaskId = 3,
+    //     TaskName = "P003",
+    //     StartDate = DateTime.Parse("2023-04-01"),
+    //     Progress = 100,
+    //     ParentId = 2
+    // }
+    //     };
+    //     return Tasks;
+    // }
 }

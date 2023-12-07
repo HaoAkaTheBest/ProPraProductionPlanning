@@ -6,7 +6,7 @@ namespace SupportLibrary.Data
         Task CreateRouting(IRoutingModel routing);
         Task DeleteRouting(int id);
         Task<List<IRoutingModel>> ReadRouting();
-        Task<IRoutingModel> ReadRouting(int id);
+        Task<List<IRoutingModel>> ReadRoutingForOneProduct(int productId);
         Task<List<IRoutingModel>> SearchRouting(string searchTerm);
         Task UpdateRouting(IRoutingModel routing);
     }

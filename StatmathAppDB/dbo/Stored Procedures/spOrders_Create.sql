@@ -8,7 +8,7 @@ AS
 begin
 	set nocount on;
 
-	insert into dbo.Orders(Id,ProductionId,Deadline,EarliestStartDate,OrderDate)
+	insert into dbo.Orders(Id,ProductId,Deadline,EarliestStartDate,OrderDate)
 	values(@Id,@ProductId,@Deadline,@EarliestStartDate,@OrderDate);
 
 

@@ -35,24 +35,21 @@ namespace SupportLibrary.DataAccess
         {
             string connectionString = _config.GetConnectionString(connectionStringName);
 
-            try
+            using (IDbConnection connection = new SqlConnection(connectionString))
             {
-                using (IDbConnection connection = new SqlConnection(connectionString))
+                try
                 {
-                    connection.Open();
-                    int rowsAffected =  connection.Execute(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
-                    if (rowsAffected ==0)
+                    await connection.ExecuteAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 2627 || ex.Number ==2601 ||ex.Number ==50000)
                     {
-                        throw new Exception();
+                        throw new Exception("Duplicate Entries");
                     }
                 }
+                
             }
-            catch (Exception)
-            {
-
-                throw new Exception();
-            }
-            
         }
     }
 }

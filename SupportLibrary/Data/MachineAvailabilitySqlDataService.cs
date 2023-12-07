@@ -18,7 +18,14 @@
                 availability.Description
                 
             };
-            await _dataAccess.SaveData("dbo.spMachineAvailabilities_Create", p, "SQLDB");
+            try
+            {
+                await _dataAccess.SaveData("dbo.spMachineAvailabilities_Create", p, "SQLDB");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<List<IMachineAvailabilityModel>> ReadMachineAvailability()
@@ -30,10 +37,10 @@
             return availability.ToList<IMachineAvailabilityModel>();
         }
 
-        public async Task<IMachineAvailabilityModel> ReadMachineAvailability(int id)
+        public async Task<IMachineAvailabilityModel> ReadMachineAvailabilityForProduction(int machineId, DateTime startDate)
         {
-            var availability = await _dataAccess.LoadData<MachineAvailabilityModel, dynamic>("dbo.spMachineAvailabilities_ReadOne",
-                                                                          new { Id = id },
+            var availability = await _dataAccess.LoadData<MachineAvailabilityModel, dynamic>("dbo.spMachineAvailabilities_ReadAvailabilityForProduction",
+                                                                          new { MachineId = machineId, StartDate = startDate },
                                                                           "SQLDB");
 
             return availability.FirstOrDefault();

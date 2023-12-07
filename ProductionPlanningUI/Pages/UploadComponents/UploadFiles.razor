@@ -36,13 +36,19 @@
             </div>
         </EditForm>
     </div>
- 
+
     <div class="btn-group" style="margin: 10px;">
         <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowOrders())">
             Show Uploaded Orders
         </button>
         <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowMachines())">
             Show Uploaded Machines
+        </button>
+        <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowRoutings())">
+            Show Uploaded Routings
+        </button>
+        <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowMA())">
+            Show Uploaded Machine Availability
         </button>
     </div>
 </div>
@@ -57,6 +63,147 @@
         }
     </ul>
 }
+@if (duplicatedEntries)
+{
+    <div>
+        <h3 class="text-warning">Duplicated Entries</h3>
+    </div>
+    @if (isDupMachines)
+    {
+        <div class="row">
+            <div>
+                <h4 class="text-warning">Duplicated Machines</h4>
+            </div>
+            <div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Machine Id</th>
+                            <th>Short name</th>
+                            <th>Description</th>
+                            <th>Effectivity</th>
+                            <th>Machine Alternativity Group</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dm in duplicatedMachines)
+                        {
+                            <tr>
+                                <td>@dm.Id</td>
+                                <td>@dm.ShortName</td>
+                                <td>@dm.Description</td>
+                                <td>@dm.Effectivity</td>
+                                <td>@dm.MachineAlternativityGroup</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    @if (isDupOrders)
+    {
+        <div class="row">
+            <div>
+                <h4 class="text-warning">Duplicated Orders</h4>
+            </div>
+            <div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Product Id</th>
+                            <th>Deadline</th>
+                            <th>Earliest Start Date</th>
+                            <th>Order Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var o in duplicatedOrders)
+                        {
+                            <tr>
+                                <td>@o.Id</td>
+                                <td>@o.ProductId</td>
+                                <td>@o.Deadline</td>
+                                <td>@o.EarliestStartDate</td>
+                                <td>@o.OrderDate</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    @if (isDupMA)
+    {
+        <div class="row">
+            <div>
+                <h4 class="text-warning">Duplicated Machine Availability</h4>
+            </div>
+            <div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Machine Id</th>
+                            <th>Pause Start Date</th>
+                            <th>Pause End Date</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in duplicatedMA)
+                        {
+                            <tr>
+                                <td>@m.MachineId</td>
+                                <td>@m.PauseStartDate</td>
+                                <td>@m.PauseEndDate</td>
+                                <td>@m.Description</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    @if (isDupRoutings)
+    {
+        <div class="row">
+            <div>
+                <h4 class="text-warning">Duplicated Routings</h4>
+            </div>
+            <div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Product Id</th>
+                            <th>Step Id</th>
+                            <th>Machine Id</th>
+                            <th>Setup Time In Seconds</th>
+                            <th>Process Time In Seconds</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in duplicatedRoutings)
+                        {
+                            <tr>
+                                <td>@r.ProductId</td>
+                                <td>@r.StepId</td>
+                                <td>@r.MachineId</td>
+                                <td>@r.SetupTimeInSeconds</td>
+                                <td>@r.ProcessTimeInSeconds</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+}
+@if (uploadFail)
+{
+    <h3 class="text-danger">Uploading Failed</h3>
+}
 @if (uploading)
 {
     <h3 class="text-warning">Uploading Files</h3>
@@ -67,8 +214,10 @@
 }
 @if (showOrdersFile)
 {
-    <TestChart data="@orders"></TestChart>
-   @*  <div class="row">
+    <div class="row">
+        <div>
+            <h4 class="text-primary">Uploaded Orders</h4>
+        </div>
         <div>
             <table class="table table-striped">
                 <thead>
@@ -94,11 +243,14 @@
                 </tbody>
             </table>
         </div>
-    </div> *@
+    </div>
 }
 @if (showMachinesFile)
 {
     <div class="row">
+        <div>
+            <h4 class="text-primary">Uploaded Machines</h4>
+        </div>
         <div>
             <table class="table table-striped">
                 <thead>
@@ -126,7 +278,73 @@
         </div>
     </div>
 }
-
+@if (showRoutingsFile)
+{
+    <div class="row">
+        <div>
+            <h4 class="text-primary">Uploaded Routings</h4>
+        </div>
+        <div>
+            <h4 class="text-warning">Duplicated Routings</h4>
+        </div>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Product Id</th>
+                        <th>Step Id</th>
+                        <th>Machine Id</th>
+                        <th>Setup Time In Seconds</th>
+                        <th>Process Time In Seconds</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in routings)
+                    {
+                        <tr>
+                            <td>@r.ProductId</td>
+                            <td>@r.StepId</td>
+                            <td>@r.MachineId</td>
+                            <td>@r.SetupTimeInSeconds</td>
+                            <td>@r.ProcessTimeInSeconds</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+@if (showMachineAvailabilityFile)
+{
+    <div class="row">
+        <div>
+            <h4 class="text-primary">Uploaded Machine Availability</h4>
+        </div>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Machine Id</th>
+                        <th>Pause Start Date</th>
+                        <th>Pause End Date</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in machineAvailabilites)
+                    {
+                        <tr>
+                            <td>@m.MachineId</td>
+                            <td>@m.PauseStartDate</td>
+                            <td>@m.PauseEndDate</td>
+                            <td>@m.Description</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
 
 
 

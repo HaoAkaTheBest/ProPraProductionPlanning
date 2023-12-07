@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using ProductionPlanningUI.Data;
+using SupportLibrary.CreateProduction;
 using SupportLibrary.Data;
 using SupportLibrary.DataAccess;
 using SupportLibrary.Models;
@@ -20,6 +21,7 @@ builder.Services.AddScoped<IOrderSqlDataService, OrderSqlDataService>();
 builder.Services.AddScoped<IRoutingSqlDataService, RoutingSqlDataService>();
 builder.Services.AddScoped<IMachineAvailabilitySqlDataService, MachineAvailabilitySqlDataService>();
 builder.Services.AddSyncfusionBlazor();
+builder.Services.AddScoped<IProductionPlanning, ProductionPlanning>();
 
 var app = builder.Build();
 

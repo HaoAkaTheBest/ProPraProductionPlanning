@@ -23,7 +23,14 @@ namespace SupportLibrary.Data
                 machine.MachineAlternativityGroup
             };
 
-            await _dataAccess.SaveData("dbo.spMachines_Create", p, "SQLDB");
+            try
+            {
+                await _dataAccess.SaveData("dbo.spMachines_Create", p, "SQLDB");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<List<IMachineModel>> ReadMachine()
@@ -33,9 +40,9 @@ namespace SupportLibrary.Data
             return machine.ToList<IMachineModel>();
         }
 
-        public async Task<IMachineModel> ReadMachine(int id)
+        public async Task<IMachineModel> ReadMachine(int machineid)
         {
-            var machine = await _dataAccess.LoadData<MachineModel, dynamic>("dbo.spMachines_ReadOne", new { Id = id }, "SQLDB");
+            var machine = await _dataAccess.LoadData<MachineModel, dynamic>("dbo.spMachines_ReadOneMachine", new { Id = machineid }, "SQLDB");
 
             return machine.FirstOrDefault();
         }
