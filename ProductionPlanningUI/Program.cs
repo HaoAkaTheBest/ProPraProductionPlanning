@@ -22,6 +22,7 @@ builder.Services.AddScoped<IRoutingSqlDataService, RoutingSqlDataService>();
 builder.Services.AddScoped<IMachineAvailabilitySqlDataService, MachineAvailabilitySqlDataService>();
 builder.Services.AddSyncfusionBlazor();
 builder.Services.AddScoped<IProductionPlanning, ProductionPlanning>();
+builder.Services.AddScoped<IMachineUsedSqlDataService,MachineUsedSqlDataService>();
 
 var app = builder.Build();
 

@@ -1,4 +1,6 @@
 ﻿
+using System.Reflection.PortableExecutable;
+
 namespace SupportLibrary.CreateProduction
 {
     public class ProductionPlanning : IProductionPlanning
@@ -7,13 +9,15 @@ namespace SupportLibrary.CreateProduction
         private readonly IOrderSqlDataService _orderData;
         private readonly IMachineSqlDataService _machineData;
         private readonly IRoutingSqlDataService _routingData;
+        private readonly IMachineUsedSqlDataService _machineUsedData;
 
-        public ProductionPlanning(IMachineAvailabilitySqlDataService maData, IOrderSqlDataService orderData, IMachineSqlDataService machineData, IRoutingSqlDataService routingData)
+        public ProductionPlanning(IMachineAvailabilitySqlDataService maData, IOrderSqlDataService orderData, IMachineSqlDataService machineData, IRoutingSqlDataService routingData, IMachineUsedSqlDataService machineUsedData)
         {
             _maData = maData;
             _orderData = orderData;
             _machineData = machineData;
             _routingData = routingData;
+            _machineUsedData = machineUsedData;
         }
         public async Task<List<ITaskData>> CreateProductionPlan()
         {
@@ -37,8 +41,6 @@ namespace SupportLibrary.CreateProduction
                     Note = process.Note,
                     Status = process.Status,
                     DurationUnit = "hour"
-                   
-
                 });
             }
 
@@ -48,26 +50,30 @@ namespace SupportLibrary.CreateProduction
         private async Task<IOrderProcessModel> CalculateDuration(IOrderModel order)
         {
             string duration;
-            DateTime endDate;
             string Note = "";
 
             double tempDuration = 0.0;
             OrderProcessModel orderProcess = new();
 
             DateTime startDate = order.EarliestStartDate;
+            DateTime endDate = order.EarliestStartDate;
             DateTime usingDate = startDate;
 
             List<IRoutingModel> steps = await _routingData.ReadRoutingForOneProduct(order.ProductId);
-            List<IMachineModel> neededMachines = new();
 
             foreach (var step in steps)
             {
                 string descriptionForAvailability;
                 bool isAvailable;
+                bool isTheMachineUsed;
+                IMachineUsedModel usedModel;
+                double durationForThisMachine = 0.0;
+
                 var machine = await _machineData.ReadMachine(step.MachineId);
                 (isAvailable,descriptionForAvailability) = await CheckMachineAvailability(step.MachineId, usingDate);
+                (isTheMachineUsed, usedModel) = await CheckIfNotUsedMachine(step.MachineId, usingDate);
 
-
+ 
                 while (isAvailable == false)
                 {
                     if (step.StepId == 1)
@@ -76,11 +82,28 @@ namespace SupportLibrary.CreateProduction
                         startDate = startDate.AddDays(1); // check if available in the next day
                     }
                     usingDate = usingDate.AddDays(1); // check if available in the next day
+
                     (isAvailable, descriptionForAvailability) = await CheckMachineAvailability(step.MachineId, usingDate);
                 }
-                if (isAvailable)
+
+                while (isTheMachineUsed == true)
                 {
-                    tempDuration += ((step.SetupTimeInSeconds + step.ProcessTimeInSeconds) / 3600.0);
+                    durationForThisMachine += ((usedModel.EndTime - usedModel.StartTime).TotalSeconds / 3600.0);
+                    usingDate = usedModel.EndTime;
+                    (isTheMachineUsed, usedModel) = await CheckIfNotUsedMachine(step.MachineId, usingDate);
+                }
+
+
+                if (isAvailable && !isTheMachineUsed)
+                {
+                    double stepTime = (step.ProcessTimeInSeconds + step.SetupTimeInSeconds) / 3600.0;
+
+                    durationForThisMachine += stepTime;
+
+                    await _machineUsedData.CreateMachineUsed(step.MachineId, usingDate, usingDate.AddHours(stepTime));
+                    usingDate = usingDate.AddHours(stepTime);
+                    endDate = usingDate.AddHours(stepTime);
+                    tempDuration += durationForThisMachine;
                 }
                 else
                 {
@@ -89,7 +112,7 @@ namespace SupportLibrary.CreateProduction
 
             }
             duration = tempDuration.ToString("F2");
-            endDate = startDate.AddHours(tempDuration);
+            //endDate = startDate.AddHours(tempDuration);
 
             orderProcess.Duration = duration;
 
@@ -105,7 +128,6 @@ namespace SupportLibrary.CreateProduction
             {
                 orderProcess.Status = "In Production";
             }
-
             if (order.Deadline <= order.EarliestStartDate)
             {
                 orderProcess.Note = "After Deadline; " + Note ;
@@ -123,6 +145,23 @@ namespace SupportLibrary.CreateProduction
             return orderProcess;
 
         }
+
+        private async Task<(bool,IMachineUsedModel)> CheckIfNotUsedMachine(int machineid, DateTime usingDate)
+        {
+            bool isUsed = false;
+            var machineIsUsed = await _machineUsedData.ReadMachineUsedInThisTime(machineid, usingDate);
+            if (machineIsUsed == null)
+            {
+                isUsed = false;
+            }
+            else
+            {
+                isUsed = true;
+            }
+
+            return (isUsed,machineIsUsed);
+        }
+
         private async Task<double> CalculateProgress(DateTime endDate, DateTime startDate)
         {
             DateTime currentDate = DateTime.Now;
