@@ -5,7 +5,7 @@
 
 <h3>GanttChart</h3>
 
-<SfGantt DataSource="@TaskCollection" TaskMode="ScheduleMode.Manual" AutoCalculateDateScheduling="false" AllowUnscheduledTasks="true" IncludeWeekend="true" AllowFiltering="true" Height="800px" Width="1600px">
+<SfGantt DataSource="@TaskCollection" TaskMode="ScheduleMode.Manual" AutoCalculateDateScheduling="false" AllowUnscheduledTasks="true" IncludeWeekend="true" AllowFiltering="true" AllowSorting="true" Height="800px" Width="1600px">
     <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" 
         Duration="Duration" Progress="Progress" ParentID="ParentId" DurationUnit="DurationUnit">
     </GanttTaskFields>

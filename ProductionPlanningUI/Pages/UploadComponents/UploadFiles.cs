@@ -238,15 +238,17 @@ namespace ProductionPlanningUI.Pages.UploadComponents
                 }
                 try
                 {
-                    string newFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(machinesFile.Name));
+                    // save file to machine
 
-                    var path = Path.Combine(config.GetValue<string>("FileStorage"), "testUser",
-                            newFileName);
+                    //string newFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(machinesFile.Name));
 
-                    Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage"), "testUser"));
+                    //var path = Path.Combine(config.GetValue<string>("FileStorage"), "testUser",
+                    //        newFileName);
 
-                    await using FileStream fs = new(path, FileMode.Create);
-                    await machinesFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
+                    //Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage"), "testUser"));
+
+                    //await using FileStream fs = new(path, FileMode.Create);
+                    //await machinesFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
 
                     machines = await ReadCSV.ReadMachinesFile(machinesFile);
                     int numberOfDuplicateEntries = 0;
@@ -291,15 +293,17 @@ namespace ProductionPlanningUI.Pages.UploadComponents
                 }
                 try
                 {
-                    string newFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(ordersFile.Name));
+                    // save file to machine
 
-                    var path = Path.Combine(config.GetValue<string>("FileStorage"), "testUser",
-                            newFileName);
+                    //string newFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(ordersFile.Name));
 
-                    Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage"), "testUser"));
+                    //var path = Path.Combine(config.GetValue<string>("FileStorage"), "testUser",
+                    //        newFileName);
 
-                    await using FileStream fs = new(path, FileMode.Create);
-                    await ordersFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
+                    //Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage"), "testUser"));
+
+                    //await using FileStream fs = new(path, FileMode.Create);
+                    //await ordersFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
 
                     orders = await ReadCSV.ReadOrdersFile(ordersFile);
                     int numberOfDuplicateEntries = 0;
@@ -345,15 +349,17 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
                 try
                 {
-                    string newFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(routingsFile.Name));
+                    // save file to machine
 
-                    var path = Path.Combine(config.GetValue<string>("FileStorage"), "testUser",
-                            newFileName);
+                    //string newFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(routingsFile.Name));
 
-                    Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage"), "testUser"));
+                    //var path = Path.Combine(config.GetValue<string>("FileStorage"), "testUser",
+                    //        newFileName);
 
-                    await using FileStream fs = new(path, FileMode.Create);
-                    await routingsFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
+                    //Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage"), "testUser"));
+
+                    //await using FileStream fs = new(path, FileMode.Create);
+                    //await routingsFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
 
                     routings = await ReadCSV.ReadRoutingsFile(routingsFile);
                     int numberOfDuplicateEntries = 0;
@@ -400,15 +406,17 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
                 try
                 {
-                    string newFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(machineAvailabilityFile.Name));
+                    //save file to machine
 
-                    var path = Path.Combine(config.GetValue<string>("FileStorage"), "testUser",
-                            newFileName);
+                    //string newFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(machineAvailabilityFile.Name));
 
-                    Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage"), "testUser"));
+                    //var path = Path.Combine(config.GetValue<string>("FileStorage"), "testUser",
+                    //        newFileName);
 
-                    await using FileStream fs = new(path, FileMode.Create);
-                    await machineAvailabilityFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
+                    //Directory.CreateDirectory(Path.Combine(config.GetValue<string>("FileStorage"), "testUser"));
+
+                    //await using FileStream fs = new(path, FileMode.Create);
+                    //await machineAvailabilityFile.OpenReadStream(maxFileSize * 1024 * 1024).CopyToAsync(fs);
 
                     machineAvailabilites = await ReadCSV.ReadMachineAvailabilityFile(machineAvailabilityFile);
                     int numberOfDuplicateEntries = 0;

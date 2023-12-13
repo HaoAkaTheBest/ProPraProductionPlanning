@@ -75,9 +75,9 @@ namespace SupportLibrary.CreateProduction
 
                 while (isAvailable == false)
                 {
+                    Note += $"1 day: {descriptionForAvailability}; "; // add note
                     if (step.StepId == 1)
                     {
-                        Note += $"1 day: {descriptionForAvailability}; "; // add note
                         startDate = startDate.AddDays(1); // check if available in the next day
                     }
                     usingDate = usingDate.AddDays(1); // check if available in the next day
