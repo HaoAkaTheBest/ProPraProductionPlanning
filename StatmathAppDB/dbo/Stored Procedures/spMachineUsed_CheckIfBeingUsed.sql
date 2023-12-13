@@ -5,11 +5,11 @@ AS
 begin
 	set nocount on;
 
-	select [MachineId], [StartTime], [EndTime]
+	select [OrderId], [MachineId], [StartTime], [EndTime]
 	from dbo.MachineUsed
 	where MachineId = @MachineId
-		and @StartTime < EndTime
-		and StartTime > @StartTime;
+		and (@StartTime < EndTime and
+			 @StartTime >= StartTime);
 
 
 end

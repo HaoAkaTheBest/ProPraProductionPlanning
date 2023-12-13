@@ -1,4 +1,5 @@
 ﻿
+
 namespace SupportLibrary.SupportModels
 {
     public interface IOrderProcessModel

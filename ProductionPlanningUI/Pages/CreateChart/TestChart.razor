@@ -24,7 +24,7 @@ else
 
 @code {
     bool showChart;
-    private List<TaskDataToShow> ToShow { get; set; } = new();
+    private List<TaskData> ToShow { get; set; } = new();
     private List<ITaskData> TaskCollection { get; set; }
     protected override async Task OnInitializedAsync()
     {
@@ -37,11 +37,11 @@ else
     {
         foreach (var item in TaskCollection)
         {
-            TaskDataToShow task = new TaskDataToShow
+            TaskData task = new TaskData
                 {
                     TaskId = item.TaskId,
-                    TaskName = item.ProductId,
-                    StartDate = item.EarliestStartDate,
+                    TaskName = item.TaskName,
+                    StartDate = item.StartDate,
                     EndDate = item.EndDate,
                     Duration = item.Duration,
                     Progress = item.Progress,
@@ -50,16 +50,13 @@ else
                     Deadline = item.Deadline,
                     OrderDate = item.OrderDate,
                     Status = item.Status
+                    // Steps = item.Steps
                 };
             ToShow.Add(task);
 
         }
         showChart = true;
     }
-
-
-
-
 
     // public static List<TaskDataToShow> GetTaskCollection()
     // {

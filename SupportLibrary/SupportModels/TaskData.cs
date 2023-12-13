@@ -10,13 +10,14 @@ namespace SupportLibrary.SupportModels
     {
         public int TaskId { get; set; }
         //TaskName
-        public string ProductId { get; set; }
+        public string TaskName { get; set; }
         //StartDate
-        public DateTime EarliestStartDate { get; set; }
+        public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Duration { get; set; }
         public int Progress { get; set; }
         public string DurationUnit { get; set; }
+        public int? ParentId { get; set; }
 
         //Extra informations
         public DateTime OrderDate { get; set; }

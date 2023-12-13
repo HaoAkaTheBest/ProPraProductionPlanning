@@ -15,6 +15,5 @@ namespace SupportLibrary.SupportModels
         public string Note { get; set; }
         public DateTime StartDate { get; set; }
 
-
     }
 }

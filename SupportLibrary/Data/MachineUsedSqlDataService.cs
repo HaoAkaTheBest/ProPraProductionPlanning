@@ -15,23 +15,17 @@ namespace SupportLibrary.Data
             _dataAccess = dataAccess;
         }
 
-        public async Task CreateMachineUsed(int machineId, DateTime startTime, DateTime endTime)
+        public async Task CreateMachineUsed(int orderId,int machineId, DateTime startTime, DateTime endTime)
         {
             var p = new
             {
+                OrderId = orderId,
                 MachineId = machineId,
                 StartTime = startTime,
                 EndTime = endTime
 
             };
-            try
-            {
-                await _dataAccess.SaveData("dbo.spMachineUsed_Create", p, "SQLDB");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            await _dataAccess.SaveData("dbo.spMachineUsed_Create", p, "SQLDB");
         }
 
         public async Task<IMachineUsedModel> ReadMachineUsedInThisTime(int machineId, DateTime startTime)

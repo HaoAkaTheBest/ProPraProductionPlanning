@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using ProductionPlanningUI.Data;
 using SupportLibrary.CreateProduction;
 using SupportLibrary.Data;
 using SupportLibrary.DataAccess;
@@ -14,7 +13,6 @@ Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mjk2MDUwNUAzMjMz
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddSingleton<ISqlDataAccess, SqlDataAccess>();
 builder.Services.AddScoped<IMachineSqlDataService,MachineSqlDataService>();
 builder.Services.AddScoped<IOrderSqlDataService, OrderSqlDataService>();

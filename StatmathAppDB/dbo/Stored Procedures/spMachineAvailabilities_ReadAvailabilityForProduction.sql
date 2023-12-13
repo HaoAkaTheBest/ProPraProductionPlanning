@@ -9,6 +9,6 @@ begin
 	from dbo.MachineAvailabilities
 	where MachineId = @MachineId 
 	and (PauseStartDate <= @StartDate and 
-		 @StartDate <= PauseEndDate);
+		 @StartDate < PauseEndDate);
 
 end

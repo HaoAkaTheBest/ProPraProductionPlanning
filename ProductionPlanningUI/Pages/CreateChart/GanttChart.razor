@@ -5,19 +5,19 @@
 
 <h3>GanttChart</h3>
 
-<SfGantt DataSource="@TaskCollection" TaskMode="ScheduleMode.Manual" AllowUnscheduledTasks="true" IncludeWeekend="true" AllowFiltering="true" Height="800px" Width="1600px">
+<SfGantt DataSource="@TaskCollection" TaskMode="ScheduleMode.Manual" AutoCalculateDateScheduling="false" AllowUnscheduledTasks="true" IncludeWeekend="true" AllowFiltering="true" Height="800px" Width="1600px">
     <GanttTaskFields Id="TaskId" Name="TaskName" StartDate="StartDate" EndDate="EndDate" 
         Duration="Duration" Progress="Progress" ParentID="ParentId" DurationUnit="DurationUnit">
     </GanttTaskFields>
     <GanttColumns>
         <GanttColumn Field="TaskId" HeaderText="Order Id" Width="150"></GanttColumn>
         <GanttColumn Field="TaskName" HeaderText="Product Id" Width="150"></GanttColumn>
-        <GanttColumn Field="StartDate" HeaderText="Start Date" Width="150"></GanttColumn>
-        <GanttColumn Field="EndDate" HeaderText="End Date" Width="150"></GanttColumn>
+        <GanttColumn Field="StartDate" HeaderText="Start Date" Format="dd/MM/yyyy hh:mm tt" Width="150"></GanttColumn>
+        <GanttColumn Field="EndDate" HeaderText="End Date" Format="dd/MM/yyyy hh:mm tt" Width="150"></GanttColumn>
         <GanttColumn Field="Progress" HeaderText="Progress" Width="150"></GanttColumn>
         <GanttColumn Field="Duration" HeaderText="Duration" Width="150"></GanttColumn>
-        <GanttColumn Field="OrderDate" HeaderText="Order Date" Width="150"></GanttColumn>
-        <GanttColumn Field="Deadline" HeaderText="Deadline" Width="150"></GanttColumn>
+        <GanttColumn Field="OrderDate" HeaderText="Order Date" Format="dd/MM/yyyy" Width="150"></GanttColumn>
+        <GanttColumn Field="Deadline" HeaderText="Deadline" Format="dd/MM/yyyy" Width="150"></GanttColumn>
         <GanttColumn Field="Status" HeaderText="Status" Width="150"></GanttColumn>
         <GanttColumn Field="Note" HeaderText="Note" Width="500"></GanttColumn>
     </GanttColumns>
@@ -29,7 +29,7 @@
 
 @code {
     [Parameter]
-    public List<TaskDataToShow> TaskCollection { get; set; }
+    public List<TaskData> TaskCollection { get; set; }
 
     
 

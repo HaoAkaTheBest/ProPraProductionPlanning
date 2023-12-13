@@ -79,6 +79,7 @@
     <Build Include="dbo\Tables\MachineUsed.sql" />
     <Build Include="dbo\Stored Procedures\spMachineUsed_CheckIfBeingUsed.sql" />
     <Build Include="dbo\Stored Procedures\spMachineUsed_Create.sql" />
+    <Build Include="dbo\Stored Procedures\spMachines_ReadAlternativity.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="StatmathAppDB.refactorlog" />

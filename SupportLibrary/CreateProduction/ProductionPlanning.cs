@@ -31,16 +31,16 @@ namespace SupportLibrary.CreateProduction
                 output.Add(new TaskData
                 {
                     TaskId = order.Id,
-                    ProductId = $"{order.ProductId}",
+                    TaskName = $"{order.ProductId}",
                     OrderDate = order.OrderDate,
                     Deadline = order.Deadline,
-                    EarliestStartDate = process.StartDate,
+                    StartDate = process.StartDate,
                     Duration = process.Duration,
                     Progress = process.Progress,
                     EndDate = process.EndDate,
                     Note = process.Note,
                     Status = process.Status,
-                    DurationUnit = "hour"
+                    DurationUnit = "minute"
                 });
             }
 
@@ -55,25 +55,24 @@ namespace SupportLibrary.CreateProduction
             double tempDuration = 0.0;
             OrderProcessModel orderProcess = new();
 
-            DateTime startDate = order.EarliestStartDate;
-            DateTime endDate = order.EarliestStartDate;
-            DateTime usingDate = startDate;
+            DateTime startDate = order.EarliestStartDate.AddHours(6);
+            DateTime endDate;
+            DateTime usingDate = order.EarliestStartDate.AddHours(6);
 
             List<IRoutingModel> steps = await _routingData.ReadRoutingForOneProduct(order.ProductId);
 
             foreach (var step in steps)
             {
+                IMachineModel machine = await _machineData.ReadMachine(step.MachineId);
                 string descriptionForAvailability;
                 bool isAvailable;
-                bool isTheMachineUsed;
-                IMachineUsedModel usedModel;
+                bool isTheMachineNotUsed;
+                IMachineUsedModel usedMachine;
                 double durationForThisMachine = 0.0;
 
-                var machine = await _machineData.ReadMachine(step.MachineId);
-                (isAvailable,descriptionForAvailability) = await CheckMachineAvailability(step.MachineId, usingDate);
-                (isTheMachineUsed, usedModel) = await CheckIfNotUsedMachine(step.MachineId, usingDate);
 
- 
+                (isAvailable,descriptionForAvailability) = await CheckMachineAvailability(machine.Id, usingDate);
+
                 while (isAvailable == false)
                 {
                     if (step.StepId == 1)
@@ -83,26 +82,50 @@ namespace SupportLibrary.CreateProduction
                     }
                     usingDate = usingDate.AddDays(1); // check if available in the next day
 
-                    (isAvailable, descriptionForAvailability) = await CheckMachineAvailability(step.MachineId, usingDate);
+                    (isAvailable, descriptionForAvailability) = await CheckMachineAvailability(machine.Id, usingDate);
                 }
 
-                while (isTheMachineUsed == true)
+                (isTheMachineNotUsed, usedMachine) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate);
+
+                int swapMachinecount = 0;
+
+                while (isTheMachineNotUsed == false)
                 {
-                    durationForThisMachine += ((usedModel.EndTime - usedModel.StartTime).TotalSeconds / 3600.0);
-                    usingDate = usedModel.EndTime;
-                    (isTheMachineUsed, usedModel) = await CheckIfNotUsedMachine(step.MachineId, usingDate);
+                    if (machine.MachineAlternativityGroup !=0 && swapMachinecount==0)
+                    {
+                        var newMachine = await CheckMachineAlternativity(machine.Id,machine.MachineAlternativityGroup);
+                        (isTheMachineNotUsed, usedMachine) = await CheckIfNotUsedMachine(order.Id, newMachine.Id, usingDate);
+                        swapMachinecount += 1;
+                        if (isTheMachineNotUsed)
+                        {
+                            machine = newMachine;
+                            continue;
+                        }
+                    }
+                    double waitingTime = ((usedMachine.EndTime - usingDate).TotalSeconds / 3600.0);
+                    durationForThisMachine += waitingTime; // add awaiting time to this machine time
+                    usingDate = usingDate.AddHours(waitingTime); // add waiting time to total process
+                    if (step.StepId == 1)
+                    {
+                        startDate = usingDate; // update start time
+                    }
+                    (isTheMachineNotUsed, usedMachine) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate);
                 }
 
 
-                if (isAvailable && !isTheMachineUsed)
+                if (isAvailable && isTheMachineNotUsed)
                 {
                     double stepTime = (step.ProcessTimeInSeconds + step.SetupTimeInSeconds) / 3600.0;
+                    if (machine.Effectivity !=0)
+                    {
+                        stepTime = (stepTime * machine.Effectivity) / 100;  // calculate the process corresponding to the effectivity of the machine
+                    }
 
-                    durationForThisMachine += stepTime;
 
-                    await _machineUsedData.CreateMachineUsed(step.MachineId, usingDate, usingDate.AddHours(stepTime));
+                    durationForThisMachine += stepTime;// add processing time
+
+                    await _machineUsedData.CreateMachineUsed(order.Id ,machine.Id, usingDate, usingDate.AddHours(stepTime));
                     usingDate = usingDate.AddHours(stepTime);
-                    endDate = usingDate.AddHours(stepTime);
                     tempDuration += durationForThisMachine;
                 }
                 else
@@ -111,8 +134,9 @@ namespace SupportLibrary.CreateProduction
                 }
 
             }
-            duration = tempDuration.ToString("F2");
-            //endDate = startDate.AddHours(tempDuration);
+            
+            duration = (tempDuration * 60).ToString("F2");
+            endDate = usingDate;
 
             orderProcess.Duration = duration;
 
@@ -146,20 +170,31 @@ namespace SupportLibrary.CreateProduction
 
         }
 
-        private async Task<(bool,IMachineUsedModel)> CheckIfNotUsedMachine(int machineid, DateTime usingDate)
+        private async Task<IMachineModel> CheckMachineAlternativity(int machineId,int alternativityGroup)
         {
-            bool isUsed = false;
-            var machineIsUsed = await _machineUsedData.ReadMachineUsedInThisTime(machineid, usingDate);
-            if (machineIsUsed == null)
+            var newMachine = await _machineData.ReadMachineAlternativity(machineId,alternativityGroup);
+
+            return newMachine;
+        }
+
+        private async Task<(bool,IMachineUsedModel)> CheckIfNotUsedMachine(int orderId ,int machineid, DateTime usingDate)
+        {
+            bool isNotUsed = false;
+            var usedMachine = await _machineUsedData.ReadMachineUsedInThisTime(machineid, usingDate);//this machine is being used
+            if (usedMachine == null)
             {
-                isUsed = false;
+                isNotUsed = true;
+            }
+            else if (usedMachine.OrderId == orderId)
+            {
+                isNotUsed = true;
             }
             else
             {
-                isUsed = true;
+                isNotUsed = false;
             }
 
-            return (isUsed,machineIsUsed);
+            return (isNotUsed,usedMachine);
         }
 
         private async Task<double> CalculateProgress(DateTime endDate, DateTime startDate)
@@ -177,7 +212,7 @@ namespace SupportLibrary.CreateProduction
         {
             string description = "";
             bool isAvailable = false;
-            var availability = await _maData.ReadMachineAvailabilityForProduction(machineId, startDate.AddHours(7));
+            var availability = await _maData.ReadMachineAvailabilityForProduction(machineId, startDate);
             if (availability == null)
             {
                 isAvailable = true;

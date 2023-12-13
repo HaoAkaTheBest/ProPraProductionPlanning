@@ -47,6 +47,13 @@ namespace SupportLibrary.Data
             return machine.FirstOrDefault();
         }
 
+        public async Task<IMachineModel> ReadMachineAlternativity(int machineId, int alternativityGroup)
+        {
+            var machine = await _dataAccess.LoadData<MachineModel, dynamic>("dbo.spMachines_ReadAlternativity", new { Id = machineId ,MachineAlternativityGroup = alternativityGroup }, "SQLDB");
+
+            return machine.FirstOrDefault();
+        }
+
         public async Task UpdateMachine(IMachineModel machine)
         {
             await _dataAccess.SaveData("dbo.spMachines_Update",
