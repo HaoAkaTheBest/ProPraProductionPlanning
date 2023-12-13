@@ -152,7 +152,7 @@ namespace SupportLibrary.CreateProduction
             {
                 orderProcess.Status = "In Production";
             }
-            if (order.Deadline <= order.EarliestStartDate)
+            if (order.Deadline <= endDate)
             {
                 orderProcess.Note = "After Deadline; " + Note ;
             }
