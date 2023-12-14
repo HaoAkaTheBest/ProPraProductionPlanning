@@ -5,7 +5,7 @@
 
 
 
-@if (TaskCollection == null)
+@if (TaskCollection.Count == 0)
 {
     <h3>...is loading</h3>
 
@@ -25,7 +25,7 @@ else
 @code {
     bool showChart;
     private List<TaskData> ToShow { get; set; } = new();
-    private List<ITaskData> TaskCollection { get; set; }
+    private List<ITaskData> TaskCollection { get; set; } = new();
     protected override async Task OnInitializedAsync()
     {
         // ToShow = GetTaskCollection();

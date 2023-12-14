@@ -70,6 +70,9 @@ namespace SupportLibrary.CreateProduction
                 bool isTheMachineNotUsed;
                 IMachineUsedModel thisMachineIsUsedInOtherOrder; // give the machine and the time when the machine is used
 
+                int delayedDays = 0;
+                List<string> reasonsForDelay = new();
+
                 double durationForThisStep = 0.0;
                 double totalWaitingTimeForThisStep = 0.0; // waitting time when the machine is used for other orders
 
@@ -90,7 +93,8 @@ namespace SupportLibrary.CreateProduction
                     // if the machine is not available, move to next day and check again till it is available
                     while (isAvailable == false)
                     {
-                        Note += $"1 day: {descriptionForAvailability}; "; // add note
+                        //delayedDays += 1; // delayed startdate
+                        //reasonsForDelay.Add(descriptionForAvailability);
                         if (step.StepId == 1)
                         {
                             startDate = startDate.AddDays(1); // update the startDate if the first step is on company holidays, weekend or maintenance
@@ -100,7 +104,7 @@ namespace SupportLibrary.CreateProduction
                             totalWaitingTimeForThisStep += 24.0; // add 24 hours of waiting if is not first step
                         }
                         usingDate = usingDate.AddDays(1); // check if the next day is not company holidays, weekend or maintenance
-                       
+
                         (isAvailable, descriptionForAvailability) = await CheckMachineAvailability(machine.Id, usingDate); // check again
                     }
 
@@ -126,27 +130,27 @@ namespace SupportLibrary.CreateProduction
 
                         totalWaitingTimeForThisStep += waitOnOccupiedMachine; // calculate waitingTime when the machine is already occupied
 
-                        usingDate = usingDate.AddHours(waitOnOccupiedMachine); 
+                        usingDate = usingDate.AddHours(waitOnOccupiedMachine);
 
                         (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate);
                     }
-                
+
                     if (step.StepId == 1)
                     {
                         startDate = usingDate; // update start time
                     }
 
-                    if (usingDate.AddHours(stepTime).Hour >= 22 && usingDate.AddHours(stepTime).Hour < 6 /*endtime should not between 6 and 22*/   )
+                    if ((usingDate.AddHours(stepTime).TimeOfDay >= TimeSpan.FromHours(22)) || (usingDate.AddHours(stepTime).TimeOfDay <= TimeSpan.FromHours(5).Add(TimeSpan.FromMinutes(59)))) /*endtime should not between 6 and 22*/   
                     {
                         // if the step takes until after 22:00 than delays to next day
                         var tempDate = new DateTime(usingDate.Year, usingDate.Month, usingDate.Day).AddDays(1).AddHours(6);
 
-                        totalWaitingTimeForThisStep += ((tempDate - usingDate).TotalSeconds/3600.0); // wait till next day
+                        totalWaitingTimeForThisStep += ((tempDate - usingDate).TotalSeconds / 3600.0); // wait till next day
 
                         usingDate = tempDate;
                         isThisStepAfter22 = true;
                     }
-                    else if (usingDate.TimeOfDay >= new TimeSpan(22,00,00) && usingDate.TimeOfDay <= new TimeSpan(23, 59, 59) /*starttime should not between 22:00pm and 23:59pm*/)
+                    else if (usingDate.TimeOfDay >= TimeSpan.FromHours(22) && usingDate.TimeOfDay <= new TimeSpan(23, 59, 59) /*starttime should not between 22:00pm and 23:59pm*/)
                     {
                         var tempDate = new DateTime(usingDate.Year, usingDate.Month, usingDate.Day).AddDays(1).AddHours(6);
 
@@ -155,7 +159,7 @@ namespace SupportLibrary.CreateProduction
                         usingDate = tempDate;
                         isThisStepAfter22 = true;
                     }
-                    else if (usingDate.Hour < 6 && usingDate.Hour >= 0 /*starttime should not between 12:00am and 6:00 am*/)
+                    else if (usingDate.TimeOfDay < TimeSpan.FromHours(6) && usingDate.TimeOfDay >= TimeSpan.FromHours(0) /*starttime should not between 12:00am and 6:00 am*/)
                     {
                         var tempDate = new DateTime(usingDate.Year, usingDate.Month, usingDate.Day).AddHours(6);
 
@@ -170,6 +174,19 @@ namespace SupportLibrary.CreateProduction
                     }
 
                 } while (/*usingDate.AddHours(stepTime).Hour >= 22*/ isThisStepAfter22);
+
+                //if (delayedDays >0)
+                //{
+                //    Note = $"delayed {delayedDays} days";
+
+                //    reasonsForDelay = new HashSet<string>(reasonsForDelay).ToList(); // remove duplicate
+
+                //    foreach (var reason in reasonsForDelay)
+                //    {
+                //        Note += $" {reason}";
+                //    }
+                    
+                //}
 
                 // when everything is okay, then write this step into databank and move to next step
                 if (isAvailable && isTheMachineNotUsed)
@@ -203,7 +220,7 @@ namespace SupportLibrary.CreateProduction
             }
             if (order.Deadline <= endDate)
             {
-                orderProcess.Note = "After Deadline; " + Note ;
+                orderProcess.Note = $"{endDate.Subtract(order.Deadline).Days} days after Deadline; " + Note;
             }
             else
             {
@@ -219,14 +236,14 @@ namespace SupportLibrary.CreateProduction
 
         }
 
-        private async Task<IMachineModel> CheckMachineAlternativity(int machineId,int alternativityGroup)
+        private async Task<IMachineModel> CheckMachineAlternativity(int machineId, int alternativityGroup)
         {
-            var newMachine = await _machineData.ReadMachineAlternativity(machineId,alternativityGroup);
+            var newMachine = await _machineData.ReadMachineAlternativity(machineId, alternativityGroup);
 
             return newMachine;
         }
 
-        private async Task<(bool,IMachineUsedModel)> CheckIfNotUsedMachine(int orderId ,int machineid, DateTime usingDate)
+        private async Task<(bool, IMachineUsedModel)> CheckIfNotUsedMachine(int orderId, int machineid, DateTime usingDate)
         {
             bool isNotUsed = false;
             var usedMachine = await _machineUsedData.ReadMachineUsedInThisTime(machineid, usingDate);//this machine is being used
@@ -243,7 +260,7 @@ namespace SupportLibrary.CreateProduction
                 isNotUsed = false;
             }
 
-            return (isNotUsed,usedMachine);
+            return (isNotUsed, usedMachine);
         }
 
         private async Task<double> CalculateProgress(DateTime endDate, DateTime startDate)
@@ -257,7 +274,7 @@ namespace SupportLibrary.CreateProduction
             return progress;
         }
 
-        private async Task<(bool,string)> CheckMachineAvailability(int machineId, DateTime startDate)
+        private async Task<(bool, string)> CheckMachineAvailability(int machineId, DateTime startDate)
         {
             string description = "";
             bool isAvailable = false;
@@ -270,7 +287,8 @@ namespace SupportLibrary.CreateProduction
             {
                 description = availability.Description;
             }
-            return (isAvailable,description);
+            return (isAvailable, description);
         }
+
     }
 }
