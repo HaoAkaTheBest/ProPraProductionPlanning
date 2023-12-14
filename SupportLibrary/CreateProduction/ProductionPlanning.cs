@@ -1,5 +1,6 @@
 ﻿
 using System.Reflection.PortableExecutable;
+using System.Transactions;
 
 namespace SupportLibrary.CreateProduction
 {
@@ -55,84 +56,132 @@ namespace SupportLibrary.CreateProduction
             double tempDuration = 0.0;
             OrderProcessModel orderProcess = new();
 
-            DateTime startDate = order.EarliestStartDate.AddHours(6);
+            DateTime startDate = order.EarliestStartDate.AddHours(6); // startDate for the whole production
             DateTime endDate;
-            DateTime usingDate = order.EarliestStartDate.AddHours(6);
+            DateTime usingDate = order.EarliestStartDate.AddHours(6); // the date that will be used to calculate everything with an assumption that working day starts at 6 and ends at 22
 
             List<IRoutingModel> steps = await _routingData.ReadRoutingForOneProduct(order.ProductId);
 
             foreach (var step in steps)
             {
-                IMachineModel machine = await _machineData.ReadMachine(step.MachineId);
-                string descriptionForAvailability;
+                IMachineModel machine = await _machineData.ReadMachine(step.MachineId); // machine for this step
+                string descriptionForAvailability; // description for machineAvailability
                 bool isAvailable;
                 bool isTheMachineNotUsed;
-                IMachineUsedModel usedMachine;
-                double durationForThisMachine = 0.0;
+                IMachineUsedModel thisMachineIsUsedInOtherOrder; // give the machine and the time when the machine is used
 
+                double durationForThisStep = 0.0;
+                double totalWaitingTimeForThisStep = 0.0; // waitting time when the machine is used for other orders
 
-                (isAvailable,descriptionForAvailability) = await CheckMachineAvailability(machine.Id, usingDate);
+                bool isThisStepAfter22 = false;
 
-                while (isAvailable == false)
+                double stepTime = (step.ProcessTimeInSeconds + step.SetupTimeInSeconds) / 3600.0; //calculate stepTime in hour
+                if (machine.Effectivity != 0)
                 {
-                    Note += $"1 day: {descriptionForAvailability}; "; // add note
-                    if (step.StepId == 1)
-                    {
-                        startDate = startDate.AddDays(1); // check if available in the next day
-                    }
-                    usingDate = usingDate.AddDays(1); // check if available in the next day
-
-                    (isAvailable, descriptionForAvailability) = await CheckMachineAvailability(machine.Id, usingDate);
+                    stepTime = (stepTime / machine.Effectivity) * 100;  // calculate the process corresponding to the effectivity of the machine
                 }
 
-                (isTheMachineNotUsed, usedMachine) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate);
+                durationForThisStep += stepTime;// add processing time
 
-                int swapMachinecount = 0;
-
-                while (isTheMachineNotUsed == false)
+                do
                 {
-                    if (machine.MachineAlternativityGroup !=0 && swapMachinecount==0)
+                    (isAvailable, descriptionForAvailability) = await CheckMachineAvailability(machine.Id, usingDate); // check if the machine is available on this day
+
+                    // if the machine is not available, move to next day and check again till it is available
+                    while (isAvailable == false)
                     {
-                        var newMachine = await CheckMachineAlternativity(machine.Id,machine.MachineAlternativityGroup);
-                        (isTheMachineNotUsed, usedMachine) = await CheckIfNotUsedMachine(order.Id, newMachine.Id, usingDate);
-                        swapMachinecount += 1;
-                        if (isTheMachineNotUsed)
+                        Note += $"1 day: {descriptionForAvailability}; "; // add note
+                        if (step.StepId == 1)
                         {
-                            machine = newMachine;
-                            continue;
+                            startDate = startDate.AddDays(1); // update the startDate if the first step is on company holidays, weekend or maintenance
                         }
+                        else
+                        {
+                            totalWaitingTimeForThisStep += 24.0; // add 24 hours of waiting if is not first step
+                        }
+                        usingDate = usingDate.AddDays(1); // check if the next day is not company holidays, weekend or maintenance
+                       
+                        (isAvailable, descriptionForAvailability) = await CheckMachineAvailability(machine.Id, usingDate); // check again
                     }
-                    double waitingTime = ((usedMachine.EndTime - usingDate).TotalSeconds / 3600.0);
-                    durationForThisMachine += waitingTime; // add awaiting time to this machine time
-                    usingDate = usingDate.AddHours(waitingTime); // add waiting time to total process
+
+                    (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate); // check if the machine is already being used for other orders
+
+                    int swapMachinecount = 0; // can only swap the machine once
+
+                    while (isTheMachineNotUsed == false)
+                    {
+                        if (machine.MachineAlternativityGroup != 0 && swapMachinecount == 0)
+                        {
+                            var newMachine = await CheckMachineAlternativity(machine.Id, machine.MachineAlternativityGroup);
+                            (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, newMachine.Id, usingDate);
+                            swapMachinecount += 1;
+                            if (isTheMachineNotUsed) // if there is an alternate machine then dont have to wait
+                            {
+                                machine = newMachine;
+                                break;
+                            }
+                        }
+
+                        double waitOnOccupiedMachine = ((thisMachineIsUsedInOtherOrder.EndTime - usingDate).TotalSeconds / 3600.0);
+
+                        totalWaitingTimeForThisStep += waitOnOccupiedMachine; // calculate waitingTime when the machine is already occupied
+
+                        usingDate = usingDate.AddHours(waitOnOccupiedMachine); 
+
+                        (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate);
+                    }
+                
                     if (step.StepId == 1)
                     {
                         startDate = usingDate; // update start time
                     }
-                    (isTheMachineNotUsed, usedMachine) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate);
-                }
 
-
-                if (isAvailable && isTheMachineNotUsed)
-                {
-                    double stepTime = (step.ProcessTimeInSeconds + step.SetupTimeInSeconds) / 3600.0;
-                    if (machine.Effectivity !=0)
+                    if (usingDate.AddHours(stepTime).Hour >= 22 && usingDate.AddHours(stepTime).Hour < 6 /*endtime should not between 6 and 22*/   )
                     {
-                        stepTime = (stepTime * machine.Effectivity) / 100;  // calculate the process corresponding to the effectivity of the machine
+                        // if the step takes until after 22:00 than delays to next day
+                        var tempDate = new DateTime(usingDate.Year, usingDate.Month, usingDate.Day).AddDays(1).AddHours(6);
+
+                        totalWaitingTimeForThisStep += ((tempDate - usingDate).TotalSeconds/3600.0); // wait till next day
+
+                        usingDate = tempDate;
+                        isThisStepAfter22 = true;
+                    }
+                    else if (usingDate.TimeOfDay >= new TimeSpan(22,00,00) && usingDate.TimeOfDay <= new TimeSpan(23, 59, 59) /*starttime should not between 22:00pm and 23:59pm*/)
+                    {
+                        var tempDate = new DateTime(usingDate.Year, usingDate.Month, usingDate.Day).AddDays(1).AddHours(6);
+
+                        totalWaitingTimeForThisStep += ((tempDate - usingDate).TotalSeconds / 3600.0); // wait till next day
+
+                        usingDate = tempDate;
+                        isThisStepAfter22 = true;
+                    }
+                    else if (usingDate.Hour < 6 && usingDate.Hour >= 0 /*starttime should not between 12:00am and 6:00 am*/)
+                    {
+                        var tempDate = new DateTime(usingDate.Year, usingDate.Month, usingDate.Day).AddHours(6);
+
+                        totalWaitingTimeForThisStep += ((tempDate - usingDate).TotalSeconds / 3600.0); // wait till next day
+
+                        usingDate = tempDate;
+                        isThisStepAfter22 = true;
+                    }
+                    else
+                    {
+                        isThisStepAfter22 = false;
                     }
 
+                } while (/*usingDate.AddHours(stepTime).Hour >= 22*/ isThisStepAfter22);
 
-                    durationForThisMachine += stepTime;// add processing time
-
-                    await _machineUsedData.CreateMachineUsed(order.Id ,machine.Id, usingDate, usingDate.AddHours(stepTime));
-                    usingDate = usingDate.AddHours(stepTime);
-                    tempDuration += durationForThisMachine;
-                }
-                else
+                // when everything is okay, then write this step into databank and move to next step
+                if (isAvailable && isTheMachineNotUsed)
                 {
-                    throw new Exception("Problem with Machine Availability");
-                }
+                    durationForThisStep += totalWaitingTimeForThisStep; // add awaiting time to this machine time
 
+                    await _machineUsedData.CreateMachineUsed(order.Id, machine.Id, usingDate, usingDate.AddHours(stepTime)); // usingDate and usingDate.AddHours(stepTime) means the time when the process acutally takes place
+
+                    usingDate = usingDate.AddHours(stepTime); // calculate usingDate(startTime) for the next step
+
+                    tempDuration += durationForThisStep;
+                }
             }
             
             duration = (tempDuration * 60).ToString("F2");
