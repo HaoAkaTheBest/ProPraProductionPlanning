@@ -1,6 +1,7 @@
 ﻿CREATE PROCEDURE [dbo].[spMachineUsed_CheckIfBeingUsed]
 	@MachineId int,
-	@StartTime datetime2(7)
+	@StartTime datetime2(7),
+	@EndTime datetime2(7)
 AS
 begin
 	set nocount on;
@@ -8,8 +9,12 @@ begin
 	select [OrderId], [MachineId], [StartTime], [EndTime]
 	from dbo.MachineUsed
 	where MachineId = @MachineId
-		and (@StartTime < EndTime and
-			 @StartTime >= StartTime);
+		and (
+				(@StartTime < EndTime and
+				 @StartTime >= StartTime)
+			 or (@EndTime <= EndTime and
+				 @EndTime > StartTime)
+			 );
 
 
 end

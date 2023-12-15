@@ -28,10 +28,10 @@ namespace SupportLibrary.Data
             await _dataAccess.SaveData("dbo.spMachineUsed_Create", p, "SQLDB");
         }
 
-        public async Task<IMachineUsedModel> ReadMachineUsedInThisTime(int machineId, DateTime startTime)
+        public async Task<IMachineUsedModel> ReadMachineUsedInThisTime(int machineId, DateTime startTime, DateTime endTime)
         {
             var machineUsed = await _dataAccess.LoadData<MachineUsedModel, dynamic>("dbo.spMachineUsed_CheckIfBeingUsed",
-                                                                                     new { MachineId = machineId, StartTime = startTime },
+                                                                                     new { MachineId = machineId, StartTime = startTime, EndTime = endTime },
                                                                                      "SQLDB");
 
             return machineUsed.FirstOrDefault();

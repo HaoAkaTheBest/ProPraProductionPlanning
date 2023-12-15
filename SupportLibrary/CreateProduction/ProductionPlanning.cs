@@ -108,7 +108,7 @@ namespace SupportLibrary.CreateProduction
                         (isAvailable, descriptionForAvailability) = await CheckMachineAvailability(machine.Id, usingDate); // check again
                     }
 
-                    (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate); // check if the machine is already being used for other orders
+                    (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate, usingDate.AddHours(stepTime)); // check if the machine is already being used for other orders
 
                     int swapMachinecount = 0; // can only swap the machine once
 
@@ -117,7 +117,7 @@ namespace SupportLibrary.CreateProduction
                         if (machine.MachineAlternativityGroup != 0 && swapMachinecount == 0)
                         {
                             var newMachine = await CheckMachineAlternativity(machine.Id, machine.MachineAlternativityGroup);
-                            (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, newMachine.Id, usingDate);
+                            (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, newMachine.Id, usingDate, usingDate.AddHours(stepTime));
                             swapMachinecount += 1;
                             if (isTheMachineNotUsed) // if there is an alternate machine then dont have to wait
                             {
@@ -132,7 +132,7 @@ namespace SupportLibrary.CreateProduction
 
                         usingDate = usingDate.AddHours(waitOnOccupiedMachine);
 
-                        (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate);
+                        (isTheMachineNotUsed, thisMachineIsUsedInOtherOrder) = await CheckIfNotUsedMachine(order.Id, machine.Id, usingDate, usingDate.AddHours(stepTime)); // LOGIC HERE HAS TO BE OPTIMIZED
                     }
 
                     if (step.StepId == 1)
@@ -243,10 +243,10 @@ namespace SupportLibrary.CreateProduction
             return newMachine;
         }
 
-        private async Task<(bool, IMachineUsedModel)> CheckIfNotUsedMachine(int orderId, int machineid, DateTime usingDate)
+        private async Task<(bool, IMachineUsedModel)> CheckIfNotUsedMachine(int orderId, int machineid, DateTime startTime, DateTime endTime)
         {
             bool isNotUsed = false;
-            var usedMachine = await _machineUsedData.ReadMachineUsedInThisTime(machineid, usingDate);//this machine is being used
+            var usedMachine = await _machineUsedData.ReadMachineUsedInThisTime(machineid, startTime, endTime);//this machine is being used
             if (usedMachine == null)
             {
                 isNotUsed = true;
