@@ -24,14 +24,16 @@ namespace SupportLibrary.Data
                 routing.SetupTimeInSeconds,
                 routing.ProcessTimeInSeconds
             };
-            try
-            {
-                await _dataAccess.SaveData("dbo.spRoutings_Create", p, "SQLDB");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+
+            await _dataAccess.SaveData("dbo.spRoutings_Create", p, "SQLDB");
+            //try
+            //{
+            //    await _dataAccess.SaveData("dbo.spRoutings_Create", p, "SQLDB");
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new Exception(ex.Message);
+            //}
         }
 
         public async Task<List<IRoutingModel>> ReadRouting()

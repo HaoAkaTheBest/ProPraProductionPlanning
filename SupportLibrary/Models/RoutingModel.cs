@@ -15,5 +15,22 @@ namespace SupportLibrary.Models
         public int SetupTimeInSeconds { get; set; }
         public int ProcessTimeInSeconds { get; set; }
 
+        public override bool Equals(object? obj)
+        {
+            if (obj == null||GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            RoutingModel otherRouting = (RoutingModel)obj;
+
+            return ProductId == otherRouting.ProductId && StepId == otherRouting.StepId && MachineId == otherRouting.MachineId && SetupTimeInSeconds == otherRouting.SetupTimeInSeconds && ProcessTimeInSeconds == otherRouting.ProcessTimeInSeconds;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode() ^ ProductId.GetHashCode() ^ StepId.GetHashCode() ^ MachineId.GetHashCode() ^ SetupTimeInSeconds.GetHashCode() ^ ProcessTimeInSeconds.GetHashCode();
+        }
+
     }
 }

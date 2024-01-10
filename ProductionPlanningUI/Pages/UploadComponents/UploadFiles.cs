@@ -252,17 +252,36 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
                     machines = await ReadCSV.ReadMachinesFile(machinesFile);
                     int numberOfDuplicateEntries = 0;
+                    var machinesInDB = await machineDataAccess.ReadMachine();
+                    List<int> machineIds = new();
+                    foreach (var m in machinesInDB)
+                    {
+                        machineIds.Add(m.Id);
+                    }
+
                     foreach (var m in machines)
                     {
-                        try
-                        {
-                            await machineDataAccess.CreateMachine(m);
-                        }
-                        catch (Exception ex)
+                        
+                        if (machineIds.Contains(m.Id))
                         {
                             numberOfDuplicateEntries += 1;
                             duplicatedMachines.Add(m);
                         }
+                        else
+                        {
+                            await machineDataAccess.CreateMachine(m);
+                        }
+
+
+                        //try
+                        //{
+                        //    await machineDataAccess.CreateMachine(m);
+                        //}
+                        //catch (Exception ex)
+                        //{
+                        //    numberOfDuplicateEntries += 1;
+                        //    duplicatedMachines.Add(m);
+                        //}
 
                     }
                     if (numberOfDuplicateEntries == machines.Count())
@@ -307,17 +326,33 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
                     orders = await ReadCSV.ReadOrdersFile(ordersFile);
                     int numberOfDuplicateEntries = 0;
+                    var ordersInDB = await orderDataAccess.ReadOrder();
+                    List<int> orderIds = new();
+                    foreach (var order in ordersInDB)
+                    {
+                        orderIds.Add(order.Id);
+                    }
+
                     foreach (var o in orders)
                     {
-                        try
-                        {
-                            await orderDataAccess.CreateOrder(o);
-                        }
-                        catch (Exception ex)
+                        if (orderIds.Contains(o.Id))
                         {
                             numberOfDuplicateEntries += 1;
                             duplicatedOrders.Add(o);
                         }
+                        else
+                        {
+                            await orderDataAccess.CreateOrder(o);
+                        }
+                        //try
+                        //{
+                        //    await orderDataAccess.CreateOrder(o);
+                        //}
+                        //catch (Exception ex)
+                        //{
+                        //    numberOfDuplicateEntries += 1;
+                        //    duplicatedOrders.Add(o);
+                        //}
                     }
                     if (numberOfDuplicateEntries == orders.Count())
                     {
@@ -363,17 +398,30 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
                     routings = await ReadCSV.ReadRoutingsFile(routingsFile);
                     int numberOfDuplicateEntries = 0;
+
+                    var routingInDB = await routingDataAccess.ReadRouting();
+
+
                     foreach (var r in routings)
                     {
-                        try
-                        {
-                            await routingDataAccess.CreateRouting(r);
-                        }
-                        catch (Exception ex)
+                        if (routingInDB.Contains(r))
                         {
                             numberOfDuplicateEntries += 1;
                             duplicatedRoutings.Add(r);
                         }
+                        else
+                        {
+                            await routingDataAccess.CreateRouting(r);
+                        }
+                        //try
+                        //{
+                        //    await routingDataAccess.CreateRouting(r);
+                        //}
+                        //catch (Exception ex)
+                        //{
+                        //    numberOfDuplicateEntries += 1;
+                        //    duplicatedRoutings.Add(r);
+                        //}
                     }
                     if (numberOfDuplicateEntries == routings.Count())
                     {
@@ -420,17 +468,32 @@ namespace ProductionPlanningUI.Pages.UploadComponents
 
                     machineAvailabilites = await ReadCSV.ReadMachineAvailabilityFile(machineAvailabilityFile);
                     int numberOfDuplicateEntries = 0;
+
+                    var MAinDB = await machineAvailabilityDataAccess.ReadMachineAvailability();
+
+
                     foreach (var availability in machineAvailabilites)
                     {
-                        try
-                        {
-                            await machineAvailabilityDataAccess.CreateMachineAvailability(availability);
-                        }
-                        catch (Exception ex)
+                        if (MAinDB.Contains(availability))
                         {
                             numberOfDuplicateEntries += 1;
                             duplicatedMA.Add(availability);
                         }
+                        else
+                        {
+                            await machineAvailabilityDataAccess.CreateMachineAvailability(availability);
+                        }
+
+
+                        //try
+                        //{
+                        //    await machineAvailabilityDataAccess.CreateMachineAvailability(availability);
+                        //}
+                        //catch (Exception ex)
+                        //{
+                        //    numberOfDuplicateEntries += 1;
+                        //    duplicatedMA.Add(availability);
+                        //}
                     }
                     if (numberOfDuplicateEntries == machineAvailabilites.Count())
                     {

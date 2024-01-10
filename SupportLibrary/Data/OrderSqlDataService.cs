@@ -18,14 +18,16 @@
                 order.EarliestStartDate,
                 order.OrderDate
             };
-            try
-            {
-                await _dataAccess.SaveData("dbo.spOrders_Create", p, "SQLDB");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+
+            await _dataAccess.SaveData("dbo.spOrders_Create", p, "SQLDB");
+            //try
+            //{
+            //    await _dataAccess.SaveData("dbo.spOrders_Create", p, "SQLDB");
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new Exception(ex.Message);
+            //}
         }
 
         public async Task<List<IOrderModel>> ReadOrder()

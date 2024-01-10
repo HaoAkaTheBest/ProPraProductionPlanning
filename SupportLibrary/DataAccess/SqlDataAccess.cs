@@ -37,18 +37,19 @@ namespace SupportLibrary.DataAccess
 
             using (IDbConnection connection = new SqlConnection(connectionString))
             {
-                try
-                {
-                    await connection.ExecuteAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
-                }
-                catch (SqlException ex)
-                {
-                    if (ex.Number == 2627 || ex.Number ==2601 ||ex.Number ==50000)
-                    {
-                        throw new Exception("Duplicate Entries");
-                    }
-                }
-                
+
+                await connection.ExecuteAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
+                //try
+                //{
+                //    await connection.ExecuteAsync(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
+                //}
+                //catch (SqlException ex)
+                //{
+                //    if (ex.Number == 2627 || ex.Number ==2601 ||ex.Number ==50000)
+                //    {
+                //        throw new Exception("Duplicate Entries");
+                //    }
+                //}  
             }
         }
     }

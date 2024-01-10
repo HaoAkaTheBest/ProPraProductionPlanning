@@ -23,14 +23,16 @@ namespace SupportLibrary.Data
                 machine.MachineAlternativityGroup
             };
 
-            try
-            {
-                await _dataAccess.SaveData("dbo.spMachines_Create", p, "SQLDB");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+
+            await _dataAccess.SaveData("dbo.spMachines_Create", p, "SQLDB");
+            //try
+            //{
+            //    return _dataAccess.SaveData("dbo.spMachines_Create", p, "SQLDB");
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new Exception(ex.Message);
+            //}
         }
 
         public async Task<List<IMachineModel>> ReadMachine()
