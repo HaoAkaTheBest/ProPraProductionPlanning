@@ -1,0 +1,15 @@
+﻿@page "/testtest"
+@inject IOptimizedProductionPlanning optimierung
+<h3>TestTest</h3>
+
+<h3>@optimized</h3>
+
+@code {
+    string optimized ="";
+    protected override async Task OnInitializedAsync()
+    {
+        // ToShow = GetTaskCollection();
+        optimized = await optimierung.CreateProductionPlan();
+    }
+    
+}

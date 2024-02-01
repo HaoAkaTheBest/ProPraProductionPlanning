@@ -1,0 +1,292 @@
+﻿
+<h3>Data</h3>
+
+@page "/data"
+
+@inject IOrderSqlDataService orderData
+@inject IMachineSqlDataService machineData
+@inject IMachineAvailabilitySqlDataService machineavailabilityData
+@inject IRoutingSqlDataService routingData
+@inject IMachineUsedSqlDataService usedMachineData
+
+<div class="btn-group" style="margin: 10px;">
+    <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowOrders())">
+        Show Orders
+    </button>
+    <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowMachines())">
+        Show Machines
+    </button>
+    <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowRoutings())">
+        Show Routings
+    </button>
+    <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowMA())">
+        Show Machine Availability
+    </button>
+    @if (!confirmDeleteAllData)
+    {
+        <button class="btn btn-outline-danger mx-2" type="button" @onclick="(()=>confirmDeleteAllData=true )">
+            DELETE ALL DATA
+        </button>
+    }
+    else
+    {
+        <button class="btn btn-danger mx-2" type="button" @onclick="(()=>DeleteAllData())">
+            Confirm DELETE ALL DATA
+        </button>
+    }
+</div>
+
+@if (showOrdersFile)
+{
+    <div class="row">
+        <div>
+            <h4 class="text-primary">Orders</h4>
+        </div>
+        <div>
+           <div class="row">
+               <div class="col-md-8">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Product Id</th>
+                                <th>Deadline</th>
+                                <th>Earliest Start Date</th>
+                                <th>Order Date</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var o in orders)
+                            {
+                                <tr>
+                                    <td>@o.Id</td>
+                                    <td>@o.ProductId</td>
+                                    <td>@o.Deadline</td>
+                                    <td>@o.EarliestStartDate</td>
+                                    <td>@o.OrderDate</td>
+                                    <td>
+                                        <button class="btn btn-primary mx-2" @onclick="(() => UpdateOrder(o.Id))">
+                                            Update
+                                        </button>
+                                    </td>
+                                    <td>
+                                        @if (orderIdToDelete == o.Id)
+                                        {
+                                            <button class="btn btn-danger mx-2" @onclick="(() => DeleteOrder(o.Id))">
+                                                Confirm Delete
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-danger mx-2" @onclick="(() => orderIdToDelete = o.Id)">
+                                                Delete
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+               </div>
+               <div class="col-md-4">
+                    @if (showOrderEditForm)
+                    {
+                        <UpdateOrder Id="@orderIdToUpdate" OnUpdate="HandleOnUpdate"></UpdateOrder>
+                    }
+               </div>
+
+           </div>
+        </div>
+    </div>
+}
+@if (showMachinesFile)
+{
+    <div class="row">
+        <div>
+            <h4 class="text-primary">Machines</h4>
+        </div>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Short Name</th>
+                        <th>Description</th>
+                        <th>Effectivity</th>
+                        <th>Machine Alternativity Group</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in machines)
+                    {
+                        <tr>
+                            <td>@m.Id</td>
+                            <td>@m.ShortName</td>
+                            <td>@m.Description</td>
+                            <td>@m.Effectivity</td>
+                            <td>@m.MachineAlternativityGroup</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+@if (showRoutingsFile)
+{
+    <div class="row">
+        <div>
+            <h4 class="text-primary">Routings</h4>
+        </div>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Product Id</th>
+                        <th>Step Id</th>
+                        <th>Machine Id</th>
+                        <th>Setup Time In Seconds</th>
+                        <th>Process Time In Seconds</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in routings)
+                    {
+                        <tr>
+                            <td>@r.ProductId</td>
+                            <td>@r.StepId</td>
+                            <td>@r.MachineId</td>
+                            <td>@r.SetupTimeInSeconds</td>
+                            <td>@r.ProcessTimeInSeconds</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+@if (showMachineAvailabilityFile)
+{
+    <div class="row">
+        <div>
+            <h4 class="text-primary">Availability</h4>
+        </div>
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Machine Id</th>
+                        <th>Pause Start Date</th>
+                        <th>Pause End Date</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var m in machineAvailabilites)
+                    {
+                        <tr>
+                            <td>@m.MachineId</td>
+                            <td>@m.PauseStartDate</td>
+                            <td>@m.PauseEndDate</td>
+                            <td>@m.Description</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+
+
+@code {
+    bool showOrdersFile;
+    bool showMachinesFile;
+    bool showRoutingsFile;
+    bool showMachineAvailabilityFile;
+
+    bool showOrderEditForm = false;
+    int orderIdToUpdate = 0;
+    int orderIdToDelete = 0;
+
+    bool confirmDeleteAllData = false;
+
+    private void UpdateOrder(int id)
+    {
+        orderIdToUpdate = id;
+        showOrderEditForm = true;
+    }
+
+    private async Task DeleteOrder(int id)
+    {
+        await orderData.DeleteOrder(id);
+        await usedMachineData.DeleteAllMachineUsed();
+        orders.Remove(orders.Where(x => x.Id == id).FirstOrDefault());
+        orderIdToDelete = 0;
+    }
+
+    private void HandleOnUpdate(IOrderModel order)
+    {
+        showOrderEditForm = false;
+
+        var o = orders.Where(x => x.Id == order.Id).FirstOrDefault();
+        if (o !=null)
+        {
+            o.ProductId = order.ProductId;
+            o.EarliestStartDate = order.EarliestStartDate;
+            o.Deadline = order.Deadline;
+        }
+    }
+
+    List<IOrderModel> orders;
+    List<IMachineModel> machines;
+    List<IRoutingModel> routings;
+    List<IMachineAvailabilityModel> machineAvailabilites;
+
+    private async Task DeleteAllData()
+    {
+        await usedMachineData.DeleteAllData();
+        confirmDeleteAllData = false;
+    }
+
+    private async Task ShowOrders()
+    {
+        orders = await orderData.ReadOrder();
+        showMachineAvailabilityFile = false;
+        showRoutingsFile = false;
+        showMachinesFile = false;
+        showOrdersFile = true;
+    }
+
+    private async Task ShowMachines()
+    {
+        machines = await machineData.ReadMachine();
+        showMachineAvailabilityFile = false;
+        showRoutingsFile = false;
+        showOrdersFile = false;
+        showMachinesFile = true;
+    }
+
+    private async Task ShowRoutings()
+    {
+        routings = await routingData.ReadRouting();
+        showMachineAvailabilityFile = false;
+        showOrdersFile = false;
+        showMachinesFile = false;
+        showRoutingsFile = true;
+    }
+
+    private async Task ShowMA()
+    {
+        machineAvailabilites = await machineavailabilityData.ReadMachineAvailability();
+        showRoutingsFile = false;
+        showOrdersFile = false;
+        showMachinesFile = false;
+        showMachineAvailabilityFile = true;
+    }
+
+
+
+}

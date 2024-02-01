@@ -21,6 +21,7 @@ builder.Services.AddScoped<IMachineAvailabilitySqlDataService, MachineAvailabili
 builder.Services.AddSyncfusionBlazor();
 builder.Services.AddScoped<IProductionPlanning, ProductionPlanning>();
 builder.Services.AddScoped<IMachineUsedSqlDataService,MachineUsedSqlDataService>();
+builder.Services.AddScoped<IOptimizedProductionPlanning, OptimizedProductionPlanning>();
 
 var app = builder.Build();
 

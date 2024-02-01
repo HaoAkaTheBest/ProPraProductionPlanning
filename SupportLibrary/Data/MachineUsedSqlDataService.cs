@@ -36,5 +36,15 @@ namespace SupportLibrary.Data
 
             return machineUsed.FirstOrDefault();
         }
+
+        public async Task DeleteAllData()
+        {
+            await _dataAccess.SaveData("dbo.spMachineUsed_DeleteAllData", new { }, "SQLDB");
+        }
+
+        public async Task DeleteAllMachineUsed()
+        {
+            await _dataAccess.SaveData("dbo.spMachineUsed_Delete", new { }, "SQLDB");
+        }
     }
 }

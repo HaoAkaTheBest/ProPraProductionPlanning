@@ -39,6 +39,7 @@
             return order.ToList<IOrderModel>();
         }
 
+
         public async Task<IOrderModel> ReadOrder(int id)
         {
             var order = await _dataAccess.LoadData<OrderModel, dynamic>("dbo.spOrders_ReadOne",
@@ -57,6 +58,16 @@
         {
             await _dataAccess.SaveData("dbo.spOrders_Delete",
                 new { Id = id }, "SQLDB");
+        }
+
+        public async Task UpdateOrderDeadline(int orderId, DateTime newDeadline)
+        {
+            await _dataAccess.SaveData("dbo.spOrders_UpdateDeadline", new { Id = orderId, Deadline = newDeadline }, "SQLDB");
+        }
+
+        public async Task UpdateOrderEarliestStartDate(int orderId, DateTime earliestStartDate)
+        {
+            await _dataAccess.SaveData("dbo.spOrders_UpdateEarliestStartDate", new { Id = orderId, EarliestStartDate = earliestStartDate }, "SQLDB");
         }
 
         public async Task<List<IOrderModel>> SearchOrder(string searchTerm)

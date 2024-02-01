@@ -56,8 +56,8 @@ namespace SupportLibrary.Data
 
                 foreach (var entry in csvData)
                 {
-                    entry[3]= entry[3].Replace(',', '.');
-                    var isValidDouble = double.TryParse(entry[3], out double effectivity);
+                    //entry[3]= entry[3].Replace(',', '.');
+                    var isValidDouble = double.TryParse(entry[3],NumberStyles.Float,germanyCulture, out double effectivity);
                     var isValidInt = int.TryParse(entry[4], out int MAG);
                     output.Add(new MachineModel
                     {

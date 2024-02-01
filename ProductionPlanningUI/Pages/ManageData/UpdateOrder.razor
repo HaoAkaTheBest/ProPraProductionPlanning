@@ -1,0 +1,60 @@
+﻿@inject IOrderSqlDataService orderData
+@inject IMachineUsedSqlDataService machineUsedData
+
+<EditForm Model="@order" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <div class="form-group">
+        <label>Id</label>
+        <span>@order.Id</span>
+    </div>
+    <div class="form-group">
+        <label>Order Date</label>
+        <span>@order.OrderDate</span>
+    </div>
+    <div class="form-group">
+        <label>ProductId</label>
+        <InputNumber @bind-Value="order.ProductId" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Earliest Start Date</label>
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="order.EarliestStartDate" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label>Deadline</label>
+        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="order.Deadline" class="form-control" />
+    </div>
+    <button class="btn btn-primary" type="submit">Update Order</button>
+
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public EventCallback<IOrderModel> OnUpdate { get; set; }
+
+    private IOrderModel order = new DisplayOrderModel();
+
+    private async Task HandleValidSubmit()
+    {
+        await orderData.UpdateOrder(order);
+        await machineUsedData.DeleteAllMachineUsed();
+        await OnUpdate.InvokeAsync(order);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var o = await orderData.ReadOrder(Id);
+
+        order.Id = o.Id;
+        order.ProductId = o.ProductId;
+        order.EarliestStartDate = o.EarliestStartDate;
+        order.Deadline = o.Deadline;
+        order.OrderDate = o.OrderDate;
+        
+    }
+
+}

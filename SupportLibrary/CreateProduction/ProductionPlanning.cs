@@ -70,7 +70,7 @@ namespace SupportLibrary.CreateProduction
                 bool isTheMachineNotUsed;
                 IMachineUsedModel thisMachineIsUsedInOtherOrder; // give the machine and the time when the machine is used
 
-                int delayedDays = 0;
+                int delayedDays;
                 List<string> reasonsForDelay = new();
 
                 double durationForThisStep = 0.0;

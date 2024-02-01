@@ -80,6 +80,14 @@
     <Build Include="dbo\Stored Procedures\spMachineUsed_CheckIfBeingUsed.sql" />
     <Build Include="dbo\Stored Procedures\spMachineUsed_Create.sql" />
     <Build Include="dbo\Stored Procedures\spMachines_ReadAlternativity.sql" />
+    <Build Include="dbo\Stored Procedures\spOrders_Update.sql" />
+    <Build Include="dbo\Stored Procedures\spOrders_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\spOrders_UpdateDeadline.sql" />
+    <Build Include="dbo\Stored Procedures\spOders_UpdateEarliestStartDate.sql" />
+    <Build Include="dbo\Stored Procedures\spOrders_ReadOne.sql" />
+    <Build Include="dbo\Stored Procedures\spMachineUsed_DeleteAllData.sql" />
+    <Build Include="dbo\Tables\Tasks.sql" />
+    <Build Include="dbo\Stored Procedures\spMachineUsed_Delete.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="StatmathAppDB.refactorlog" />
