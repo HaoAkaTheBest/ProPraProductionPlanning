@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,9 +17,9 @@ namespace SupportLibrary.CreateProduction
             public int jobID;
             public int taskID;
             public int start;
-            public double duration;
+            public int duration;
 
-            public AssignedTask(int jobID, int taskID, int start, double duration)
+            public AssignedTask(int jobID, int taskID, int start, int duration)
             {
                 this.jobID = jobID;
                 this.taskID = taskID;
@@ -58,6 +59,89 @@ namespace SupportLibrary.CreateProduction
             _machineUsedData = machineUsedData;
         }
 
+        public async Task<List<ITaskData>> CreateOptimizedProductionPlan()
+        {
+            await CreateProductionPlan();
+
+            List<IOrderModel> orders = await _orderData.ReadOrder();
+            List<IMachineUsedOptimizedModel> machineUsedOptimzeds = await _machineUsedData.ReadMachineUsedOptimized();
+
+            List<int> sortedOrdersId = machineUsedOptimzeds.Select(x => x.OrderId).Distinct().ToList();
+
+            List<ITaskData> output = new();
+
+            foreach (var orderId in sortedOrdersId)
+            {
+                var order = orders.Where(x => x.Id == orderId).FirstOrDefault();
+                List<IMachineUsedOptimizedModel> machineForThisOrder = machineUsedOptimzeds.Where(x => x.OrderId == orderId).ToList();
+                var firstMachine = machineForThisOrder.FirstOrDefault();
+                var lastMachine = machineForThisOrder.LastOrDefault();
+
+                var duration = (lastMachine.Start - firstMachine.Start + lastMachine.Duration) * 60;
+
+                DateTime startDate = order.EarliestStartDate.AddHours(firstMachine.Start);
+                DateTime endDate = startDate.AddMinutes(duration);
+
+                int progress =(int) await CalculateProgress(endDate, startDate);
+
+                string note="";
+                if (order.Deadline <= endDate)
+                {
+                    note = $"{endDate.Subtract(order.Deadline).Days} days after Deadline; ";
+                }
+
+                output.Add(new TaskData
+                {
+                    TaskId = order.Id,
+                    TaskName = $"{order.ProductId}",
+                    OrderDate = order.OrderDate,
+                    Deadline = order.Deadline,
+                    StartDate = startDate,
+                    Duration = $"{duration}",
+                    Progress = progress,
+                    EndDate = endDate,
+                    Note = note,
+                    Status = "Optimized",
+                    DurationUnit = "minute"
+                });
+            }
+
+            //List<ITaskData> output = new();
+
+            //foreach (var order in orders)
+            //{
+            //    IOrderProcessModel process = await CalculateDuration(order);
+            //    output.Add(new TaskData
+            //    {
+            //        TaskId = order.Id,
+            //        TaskName = $"{order.ProductId}",
+            //        OrderDate = order.OrderDate,
+            //        Deadline = order.Deadline,
+            //        StartDate = process.StartDate,
+            //        Duration = process.Duration,
+            //        Progress = process.Progress,
+            //        EndDate = process.EndDate,
+            //        Note = process.Note,
+            //        Status = process.Status,
+            //        DurationUnit = "minute"
+            //    });
+            //}
+
+            return output;
+        }
+
+        private async Task<double> CalculateProgress(DateTime endDate, DateTime startDate)
+        {
+            DateTime currentDate = DateTime.Now;
+            TimeSpan totalTimeSpan = endDate - startDate;
+            TimeSpan elapsedTimeSpan = currentDate - startDate;
+
+            double progress = (elapsedTimeSpan.TotalSeconds / totalTimeSpan.TotalSeconds) * 100;
+            progress = Math.Min(Math.Max(progress, 0), 100);
+            return progress;
+        }
+
+
         public async Task<string> CreateProductionPlan()
         {
             var allOrders = await _orderData.ReadOrder();
@@ -95,14 +179,14 @@ namespace SupportLibrary.CreateProduction
             //}
             //    .ToList();
 
-            //       int numMachines = 0;
-            //       foreach (var job in allJobs)
-            //       {
-            //           foreach (var task in job)
-            //           {
-            //               numMachines = Math.Max(numMachines, 1 + task.machine);
-            //           }
-            //       }
+            //int numMachines = 0;
+            //foreach (var job in allJobs)
+            //{
+            //    foreach (var task in job.Tasks)
+            //    {
+            //        numMachines = Math.Max(numMachines, task.MachineId);
+            //    }
+            //}
             int[] allMachines = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
             // Computes horizon dynamically as the sum of all durations.
@@ -123,7 +207,7 @@ namespace SupportLibrary.CreateProduction
             //for (int jobID = 0; jobID < allJobs.Count(); ++jobID)
             foreach (var job in allJobs)
             {
-                int taskID = 0;
+                int taskID = 1;
                 //var job = allJobs[jobID];
                 //for (int taskID = 0; taskID < job.Count(); ++taskID)
                 foreach (var task in job.Tasks)
@@ -158,7 +242,7 @@ namespace SupportLibrary.CreateProduction
 
 
                 //var job = allJobs[jobID];
-                for (int taskID = 0; taskID < job.Tasks.Count() - 1; ++taskID)
+                for (int taskID = 1; taskID < job.Tasks.Count() ; ++taskID)
                 {
                     var key = Tuple.Create(job.OrderId, taskID);
                     var nextKey = Tuple.Create(job.OrderId, taskID + 1);
@@ -212,6 +296,16 @@ namespace SupportLibrary.CreateProduction
                             assignedJobs.Add(task.MachineId, new List<AssignedTask>());
                         }
                         assignedJobs[task.MachineId].Add(new AssignedTask(job.OrderId, taskID, start, task.Duration));
+                        taskID++;
+                    }
+                }
+
+                foreach (var machine in allMachines)
+                {
+                    assignedJobs[machine].Sort();
+                    foreach (var item in assignedJobs[machine])
+                    {
+                        await _machineUsedData.CreateMachineUsedOptimized(item.jobID, machine, item.start, item.duration, item.taskID);
                     }
                 }
 

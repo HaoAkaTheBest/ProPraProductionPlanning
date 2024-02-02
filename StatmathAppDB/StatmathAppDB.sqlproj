@@ -88,6 +88,9 @@
     <Build Include="dbo\Stored Procedures\spMachineUsed_DeleteAllData.sql" />
     <Build Include="dbo\Tables\Tasks.sql" />
     <Build Include="dbo\Stored Procedures\spMachineUsed_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\spMachineUsed_CreateOptimized.sql" />
+    <Build Include="dbo\Tables\MachineUsedOptimized.sql" />
+    <Build Include="dbo\Stored Procedures\spMachineUsed_ReadOptimized.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="StatmathAppDB.refactorlog" />

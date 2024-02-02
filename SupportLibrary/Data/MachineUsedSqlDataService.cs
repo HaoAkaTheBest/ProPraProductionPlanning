@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,6 +27,28 @@ namespace SupportLibrary.Data
 
             };
             await _dataAccess.SaveData("dbo.spMachineUsed_Create", p, "SQLDB");
+        }
+
+        public async Task CreateMachineUsedOptimized(int orderId, int machineId, int start, int duration, int taskId)
+        {
+            var p = new
+            {
+               MachineId = machineId,
+               OrderId = orderId,
+               Start = start,
+               Duration = duration,
+               TaskId = taskId
+            };
+            await _dataAccess.SaveData("dbo.spMachineUsed_CreateOptimized", p, "SQLDB");
+        }
+
+        public async Task<List<IMachineUsedOptimizedModel>> ReadMachineUsedOptimized()
+        {
+            var machineUsedOptimized = await _dataAccess.LoadData<MachineUsedOptimizedModel, dynamic>("dbo.spMachineUsed_ReadOptimized",
+                                                                          new {},
+            "SQLDB");
+
+            return machineUsedOptimized.ToList<IMachineUsedOptimizedModel>();
         }
 
         public async Task<IMachineUsedModel> ReadMachineUsedInThisTime(int machineId, DateTime startTime, DateTime endTime)

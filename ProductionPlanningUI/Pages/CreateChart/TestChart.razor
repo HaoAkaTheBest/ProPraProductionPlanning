@@ -1,35 +1,82 @@
 ﻿@page "/testchart"
 @inject IProductionPlanning planning
+@inject IOptimizedProductionPlanning optimized
 <h3>Test Chart</h3>
 <h2>Click the button to test</h2>
 
 
+<div>
+    @if (TaskCollection.Count == 0)
+    {
+        <h3>...is processing the orders</h3>
+    }
+    else
+    {
+        <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowChart())">
+            Show Chart
+        </button>
+        <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowChartOptimized())">
+            Show Optimized Chart
+        </button>
+    }
+    @if (showChart)
+    {
+        <GanttChart TaskCollection="ToShow"></GanttChart>
+    }
+    @if (showChartOptimized)
+    {
+        <GanttChart TaskCollection="ToShowOptimized"></GanttChart>
+    }
+</div>
 
-@if (TaskCollection.Count == 0)
-{
-    <h3>...is processing the orders</h3>
-}
-else
-{
-    <button class="btn btn-primary mx-2" type="button" @onclick="(()=>ShowChart())">
-        Show Chart
-    </button>
-}
-@if (showChart)
-{
-    <GanttChart TaskCollection="ToShow"></GanttChart>
-}
+
+
 
 @code {
     bool showChart;
+    bool showChartOptimized;
     private List<TaskData> ToShow { get; set; } = new();
     private List<ITaskData> TaskCollection { get; set; } = new();
+
+    private List<TaskData> ToShowOptimized { get; set; } = new();
+    private List<ITaskData> TaskOptimzedCollection { get; set; } = new();
+
     protected override async Task OnInitializedAsync()
     {
         // ToShow = GetTaskCollection();
         var temp = await planning.CreateProductionPlan();
         TaskCollection = temp;
+
+        await optimized.CreateProductionPlan();
+        TaskOptimzedCollection = await optimized.CreateOptimizedProductionPlan();
     }
+
+
+    private void ShowChartOptimized()
+    {
+        foreach (var item in TaskOptimzedCollection)
+        {
+            TaskData task = new TaskData
+                {
+                    TaskId = item.TaskId,
+                    TaskName = item.TaskName,
+                    StartDate = item.StartDate,
+                    EndDate = item.EndDate,
+                    Duration = item.Duration,
+                    Progress = item.Progress,
+                    DurationUnit = item.DurationUnit,
+                    Note = item.Note,
+                    Deadline = item.Deadline,
+                    OrderDate = item.OrderDate,
+                    Status = item.Status
+                    // Steps = item.Steps
+                };
+            ToShowOptimized.Add(task);
+
+        }
+        showChartOptimized = true;
+    }
+
 
     private void ShowChart()
     {
